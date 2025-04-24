@@ -23,6 +23,9 @@ using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using IO.Swagger.Filters;
 using IO.Swagger.Security;
+using Microsoft.EntityFrameworkCore;
+using com.awawawiwa.Data.Context;
+using com.awawawiwa.Services;
 
 namespace IO.Swagger
 {
@@ -52,6 +55,8 @@ namespace IO.Swagger
         /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
+            DotNetEnv.Env.Load();
+
             // Add framework services.
             services
                 .AddMvc(options =>
@@ -88,6 +93,13 @@ namespace IO.Swagger
                     // Use [ValidateModelState] on Actions to actually validate it in C# as well!
                     c.OperationFilter<GeneratePathParamsValidationFilter>();
                 });
+
+            var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection");
+
+            services.AddDbContext<UserContext>(options =>
+                options.UseNpgsql(connectionString));
+
+            services.AddScoped<IUserService, UserService>();
         }
 
         /// <summary>
@@ -117,6 +129,12 @@ namespace IO.Swagger
 
             //TODO: Use Https Redirection
             // app.UseHttpsRedirection();
+
+            using (var scope = app.ApplicationServices.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<UserContext>();
+                db.Database.Migrate();
+            }
 
             app.UseEndpoints(endpoints =>
             {
