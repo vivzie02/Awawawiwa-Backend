@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  quiz-api:
+    build:
+      context: ./API/src/com.awawawiwa
+      dockerfile: Dockerfile  
+    container_name: quiz_api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    env_file: ".env"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - quiz-network
+
+  db:
+    image: postgres
+    restart: always
+    container_name: quiz_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - quiz-network
+
+volumes:
+  postgres_data:
+
+networks:
+  quiz-network:
+    driver: bridge
