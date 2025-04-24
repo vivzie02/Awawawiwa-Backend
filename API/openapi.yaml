@@ -1,0 +1,196 @@
+openapi: 3.0.3
+info:
+  title: Quiz API
+  description: This is a simple server for managing quiz questions
+  version: 1.0.0
+servers:
+  - url: https://dev.awawawiwa.com/v1
+    description: Dev Server
+  - url: https://prod.awawawiwa.com/v1
+    description: Prod Server
+tags:
+  - name: users
+    description: Operations about the users
+  - name: questions
+    description: Operations about the questions
+    
+paths:
+  /users:
+    post:
+      summary: Create a new user
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '201':
+          description: Successfully created new user
+        '500':
+          description: Internal Server Error
+          
+  /users/login:
+    post:
+      summary: Login a user
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          description: Invalid username or password
+          
+  /questions:
+    post:
+      summary: Create a new question
+      security:
+      - bearerAuth: []
+      tags:
+        - questions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Question'
+      responses:
+        '201':
+          description: Successfully created new question
+        '500':
+          description: Internal Server Error
+    get:
+      summary: Get all questions
+      tags:
+        - questions
+      responses:
+        '200':
+          description: A list of questions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Question'
+        '500':
+          description: Internal Server Error
+          
+  /questions/random/{category}:
+    parameters:
+      - name: category
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get random question from category
+      security:
+      - bearerAuth: []
+      tags:
+        - questions
+      responses:
+        '200':
+          description: A list of questions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Question'
+        '500':
+          description: Internal Server Error
+          
+  /questions/{questionId}:
+    parameters:
+      - name: questionId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get Question by id
+      security:
+      - bearerAuth: []
+      tags:
+        - questions
+      responses:
+        '200':
+          description: A question
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+        '500':
+          description: Internal Server Error
+          
+  /questions/random:
+    get:
+      summary: Get random question
+      security:
+      - bearerAuth: []
+      tags:
+        - questions
+      responses:
+        '200':
+          description: A question
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+        '500':
+          description: Internal Server Error
+                
+components:
+  schemas:
+    UserInput:
+      type: object
+      properties:
+        username:
+          type: string
+          example: User1
+        password:
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+    Question:
+      description: Model for Question
+      type: object
+      properties:
+        questionId: 
+          type: string
+          format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        Type:
+          type: string
+          example: Multiple Choice
+        Category: 
+          type: string
+          example: History
+        Question:
+          type: string
+          example: What is the capital of France?
+        Answer: 
+          type: string
+          example: Paris
+          
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
