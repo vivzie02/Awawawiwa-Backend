@@ -26,6 +26,7 @@ using IO.Swagger.Security;
 using Microsoft.EntityFrameworkCore;
 using com.awawawiwa.Data.Context;
 using com.awawawiwa.Services;
+using com.awawawiwa.Security;
 
 namespace IO.Swagger
 {
@@ -100,6 +101,7 @@ namespace IO.Swagger
                 options.UseNpgsql(connectionString));
 
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IJwtService, JwtService>();
         }
 
         /// <summary>
@@ -116,6 +118,7 @@ namespace IO.Swagger
             // app.UseStaticFiles();
 
             app.UseAuthorization();
+            app.UseAuthentication();
 
             app.UseSwagger();
             app.UseSwaggerUI(c =>

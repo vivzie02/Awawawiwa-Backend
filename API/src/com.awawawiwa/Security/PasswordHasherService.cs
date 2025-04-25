@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Text;
+using static com.awawawiwa.Constants.Constants;
 
 namespace com.awawawiwa.Security
 {
@@ -42,6 +43,19 @@ namespace com.awawawiwa.Security
             rng.GetBytes(byteSalt);
             var salt = Convert.ToBase64String(byteSalt);
             return salt;
+        }
+
+        /// <summary>
+        /// VerifyPassword
+        /// </summary>
+        /// <param name="password"></param>
+        /// <param name="salt"></param>
+        /// <param name="hashedPassword"></param>
+        /// <returns></returns>
+        public static bool VerifyPassword(string password, string salt, string hashedPassword)
+        {
+            var computedHash = ComputeHash(password, salt, HASHING_ITERATIONS);
+            return computedHash == hashedPassword;
         }
     }
 }
