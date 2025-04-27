@@ -12,13 +12,6 @@ namespace com.awawawiwa.Security
         string GenerateToken(Guid userId);
 
         /// <summary>
-        /// Validate a JWT token
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        bool ValidateToken(string token);
-
-        /// <summary>
         /// Get the user ID from a JWT token
         /// </summary>
         /// <param name="token"></param>

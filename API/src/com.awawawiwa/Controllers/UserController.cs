@@ -10,10 +10,13 @@
 using com.awawawiwa.DTOs;
 using com.awawawiwa.Services;
 using IO.Swagger.Attributes;
+using IO.Swagger.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Data.Entity.Core;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -24,6 +27,7 @@ namespace IO.Swagger.Controllers
     /// 
     /// </summary>
     [ApiController]
+    [Route("v1/users")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -39,8 +43,7 @@ namespace IO.Swagger.Controllers
         /// <param name="userInputDTO"></param>
         /// <response code="200">Login successful</response>
         /// <response code="401">Invalid username or password</response>
-        [HttpPost]
-        [Route("/v1/users/login")]
+        [HttpPost("login")]
         [ValidateModelState]
         [SwaggerOperation("LoginUser")]
         [SwaggerResponse(200, "Login successful")]
@@ -75,7 +78,6 @@ namespace IO.Swagger.Controllers
         /// <response code="500">Internal Server Error</response>
         /// <response code="409">Db Conflict</response>
         [HttpPost]
-        [Route("/v1/users")]
         [ValidateModelState]
         [SwaggerOperation("CreateUser")]
         [SwaggerResponse(statusCode: 201, description: "Successfully created new user")]
@@ -106,9 +108,9 @@ namespace IO.Swagger.Controllers
         /// <response code="201">Successfully deleted user</response>
         /// <response code="500">Internal Server Error</response>
         /// <response code="404">User not found</response>
-        [HttpDelete]
-        [Route("/v1/users/{userId}")]
+        [HttpDelete("{userId}")]
         [ValidateModelState]
+        [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
         [SwaggerOperation("DeleteUser")]
         [SwaggerResponse(statusCode: 201, description: "Successfully deleted user")]
         [SwaggerResponse(statusCode: 403, description: "Forbidden - can't delete other users")]
@@ -116,12 +118,6 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 404, description: "User not found")]
         public virtual async Task<IActionResult> DeleteUserAsync(Guid userId)
         {
-            var loggedInUserId = User.FindFirstValue("NameIdentifier");
-            if (loggedInUserId != userId.ToString())
-            {
-                return Unauthorized(new { message = "You cannot delete other users" });
-            }
-
             try
             {
                 await _userService.DeleteUserAsync(userId);
@@ -130,6 +126,40 @@ namespace IO.Swagger.Controllers
             catch (ObjectNotFoundException ex)
             {
                 return NotFound(new { message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Logout user
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <response code="201">Successfully deleted user</response>
+        /// <response code="500">Internal Server Error</response>
+        /// <response code="404">User not found</response>
+        [HttpPost("logout/{userId}")]
+        [ValidateModelState]
+        [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
+        [SwaggerOperation("LogoutUser")]
+        [SwaggerResponse(statusCode: 201, description: "Successfully logged out user")]
+        [SwaggerResponse(statusCode: 403, description: "Forbidden - can't logout other users")]
+        [SwaggerResponse(statusCode: 500, description: "Internal Server Error")]
+        [SwaggerResponse(statusCode: 404, description: "User not found")]
+        public virtual IActionResult LogoutUserAsync(Guid userId)
+        {
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            if (string.IsNullOrEmpty(token))
+            {
+                return BadRequest("No token found");
+            }
+
+            try
+            {
+                _userService.LogoutUserAsync(token);
+                return Ok();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
         }
     }

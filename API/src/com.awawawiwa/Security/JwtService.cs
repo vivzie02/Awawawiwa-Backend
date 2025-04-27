@@ -32,7 +32,8 @@ namespace com.awawawiwa.Security
         {
             var claims = new[]
             {
-                new Claim("NameIdentifier", userId.ToString())
+                new Claim("userId", userId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
             var jwtKey = Environment.GetEnvironmentVariable("Jwt_Key");
@@ -44,22 +45,11 @@ namespace com.awawawiwa.Security
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddHours(1),
+                expires: DateTime.Now.AddMinutes(30),
                 signingCredentials: creds
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
-        /// <summary>
-        /// Validate a JWT token
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public bool ValidateToken(string token)
-        {
-            // Implementation here
-            return false;
         }
 
         /// <summary>
@@ -69,7 +59,7 @@ namespace com.awawawiwa.Security
         /// <returns></returns>
         public Guid GetUserIdFromToken(string token)
         {
-            // Implementation here
+            // TODO: Implement the logic to extract the user ID from the token
             return Guid.Empty;
         }
     }

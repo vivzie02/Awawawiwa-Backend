@@ -27,6 +27,8 @@ using Microsoft.EntityFrameworkCore;
 using com.awawawiwa.Data.Context;
 using com.awawawiwa.Services;
 using com.awawawiwa.Security;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Routing;
 
 namespace IO.Swagger
 {
@@ -102,6 +104,7 @@ namespace IO.Swagger
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IJwtService, JwtService>();
+            services.AddScoped<IRevokedTokensService, RevokedTokensService>();
         }
 
         /// <summary>

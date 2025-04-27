@@ -8,6 +8,7 @@ using System;
 using System.Data.Common;
 using System.Data.Entity.Core;
 using System.Data.SqlClient;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -26,14 +27,16 @@ namespace com.awawawiwa.Services
         /// </summary>
         private readonly UserContext _context;
         private readonly IJwtService _jwtService; 
+        private readonly IRevokedTokensService _revokedTokensService; 
 
         /// <summary>
         /// UserService
         /// </summary>
-        public UserService(UserContext userContext, IJwtService jwtService)
+        public UserService(UserContext userContext, IJwtService jwtService, IRevokedTokensService revokedTokensService)
         {
             _context = userContext;
             _jwtService = jwtService;
+            _revokedTokensService = revokedTokensService;
         }
 
         /// <summary>
@@ -103,6 +106,26 @@ namespace com.awawawiwa.Services
             var token = _jwtService.GenerateToken(userEntity.UserId);
             return token;
 
+        }
+
+        /// <summary>
+        /// logout user by id
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public void LogoutUserAsync(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+
+            var jti = jwtToken?.Id; // Unique token ID
+
+            if (string.IsNullOrEmpty(jti))
+            {
+                throw new ArgumentException("Invalid token");
+            }
+
+            _revokedTokensService.RevokeToken(jti);
         }
 
         private async Task SaveUser(UserInputDTO userInput)

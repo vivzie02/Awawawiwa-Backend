@@ -29,5 +29,12 @@ namespace com.awawawiwa.Services
         /// <param name="userInputDTO"></param>
         /// <returns></returns>
         Task<string> LoginUserAsync(UserInputDTO userInputDTO);
+
+        /// <summary>
+        /// logout user
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        void LogoutUserAsync(string token);
     }
 }

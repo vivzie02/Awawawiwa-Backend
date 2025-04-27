@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using com.awawawiwa.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -22,8 +23,11 @@ namespace IO.Swagger.Security
         /// </summary>
         public const string SchemeName = "Bearer";
 
-        public BearerAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
+        public readonly IRevokedTokensService _revokedTokensService;
+
+        public BearerAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IRevokedTokensService revokedTokensService) : base(options, logger, encoder, clock)
         {
+            _revokedTokensService = revokedTokensService;
         }
 
         /// <summary>
@@ -87,6 +91,16 @@ namespace IO.Swagger.Security
 
                 // Validate the token and return the claims principal
                 var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
+
+                //check if the token is revoked
+                var jwtToken = tokenHandler.ReadJwtToken(token);
+                var jti = jwtToken.Id;
+
+                if (!string.IsNullOrEmpty(jti) && _revokedTokensService.IsTokenRevoked(jti))
+                {
+                    return null; // Return null if the token is revoked
+                }
+
                 return principal; // Returns a ClaimsPrincipal with the validated claims
             }
             catch (Exception ex)
