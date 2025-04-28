@@ -23,6 +23,12 @@ using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using IO.Swagger.Filters;
 using IO.Swagger.Security;
+using Microsoft.EntityFrameworkCore;
+using com.awawawiwa.Data.Context;
+using com.awawawiwa.Services;
+using com.awawawiwa.Security;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Routing;
 
 namespace IO.Swagger
 {
@@ -52,6 +58,8 @@ namespace IO.Swagger
         /// <param name="services"></param>
         public void ConfigureServices(IServiceCollection services)
         {
+            DotNetEnv.Env.Load();
+
             // Add framework services.
             services
                 .AddMvc(options =>
@@ -88,6 +96,18 @@ namespace IO.Swagger
                     // Use [ValidateModelState] on Actions to actually validate it in C# as well!
                     c.OperationFilter<GeneratePathParamsValidationFilter>();
                 });
+
+            var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection");
+
+            services.AddDbContext<UserContext>(options =>
+                options.UseNpgsql(connectionString));
+            services.AddDbContext<QuestionContext>(options =>
+                options.UseNpgsql(connectionString));
+
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IJwtService, JwtService>();
+            services.AddScoped<IRevokedTokensService, RevokedTokensService>();
+            services.AddScoped<IQuestionService, QuestionService>();
         }
 
         /// <summary>
@@ -104,6 +124,7 @@ namespace IO.Swagger
             // app.UseStaticFiles();
 
             app.UseAuthorization();
+            app.UseAuthentication();
 
             app.UseSwagger();
             app.UseSwaggerUI(c =>
@@ -117,6 +138,12 @@ namespace IO.Swagger
 
             //TODO: Use Https Redirection
             // app.UseHttpsRedirection();
+
+            using (var scope = app.ApplicationServices.CreateScope())
+            {
+                scope.ServiceProvider.GetRequiredService<UserContext>().Database.Migrate();
+                scope.ServiceProvider.GetRequiredService<QuestionContext>().Database.Migrate();
+            }
 
             app.UseEndpoints(endpoints =>
             {
