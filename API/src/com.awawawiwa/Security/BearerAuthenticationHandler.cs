@@ -84,9 +84,8 @@ namespace IO.Swagger.Security
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ClockSkew = TimeSpan.Zero, // Optional: to reduce the clock skew
-                    ValidIssuer = "awawawiwa-api", // Replace with your issuer
-                    ValidAudience = "awawawiwa-users" // Replace with your audience
+                    ValidIssuer = "awawawiwa-api",
+                    ValidAudience = "awawawiwa-users" 
                 };
 
                 // Validate the token and return the claims principal

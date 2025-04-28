@@ -15,7 +15,7 @@ namespace com.awawawiwa.Mappers
         /// </summary>
         /// <param name="userInputDTO"></param>
         /// <returns></returns>
-        public static UserEntity ToEntity(UserInputDTO userInputDTO)
+        public static UserEntity ToEntity(CreateUserInputDTO userInputDTO)
         {
             var salt = PasswordHasherService.GenerateSalt();
             var hashedPassword = PasswordHasherService.ComputeHash(userInputDTO.Password, salt, HASHING_ITERATIONS);

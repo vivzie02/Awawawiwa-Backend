@@ -29,5 +29,22 @@ namespace com.awawawiwa.Mappers
                 Category = category
             };
         }
+
+        /// <summary>
+        /// ToDTO
+        /// </summary>
+        /// <param name="questionEntity"></param>
+        /// <returns></returns>
+        public static QuestionOutputDTO ToDTO(QuestionEntity questionEntity)
+        {
+            return new QuestionOutputDTO
+            {
+                QuestionId = questionEntity.QuestionId,
+                Question = questionEntity.Question,
+                Answer = questionEntity.Answer,
+                Category = questionEntity.Category,
+                AuthorId = questionEntity.AuthorId
+            };
+        }
     }
 }

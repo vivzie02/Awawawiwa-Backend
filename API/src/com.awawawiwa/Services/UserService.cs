@@ -1,16 +1,11 @@
 ﻿using com.awawawiwa.Data.Context;
-using com.awawawiwa.Data.Entities;
 using com.awawawiwa.DTOs;
 using com.awawawiwa.Mappers;
+using com.awawawiwa.Models;
 using com.awawawiwa.Security;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Data.Common;
-using System.Data.Entity.Core;
-using System.Data.SqlClient;
 using System.IdentityModel.Tokens.Jwt;
-using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static com.awawawiwa.Constants.Constants;
@@ -26,8 +21,8 @@ namespace com.awawawiwa.Services
         /// Context
         /// </summary>
         private readonly UserContext _context;
-        private readonly IJwtService _jwtService; 
-        private readonly IRevokedTokensService _revokedTokensService; 
+        private readonly IJwtService _jwtService;
+        private readonly IRevokedTokensService _revokedTokensService;
 
         /// <summary>
         /// UserService
@@ -43,24 +38,43 @@ namespace com.awawawiwa.Services
         /// create a new user
         /// </summary>
         /// <param name="userInput"></param>
-        public async Task CreateUserAsync(UserInputDTO userInput)
+        public async Task<UserOperationResult> CreateUserAsync(CreateUserInputDTO userInput)
         {
             //Check if user exists
-            if(UsernameExists(userInput.Username))
+            if (await UsernameExists(userInput.Username))
             {
-                throw new ArgumentException("User already exists");
+                return new UserOperationResult
+                {
+                    ErrorCode = "UsernameTaken",
+                    ErrorMessage = "Username already exists",
+                    Success = false
+                };
             }
             //Check if email exists
-            if (EmailExists(userInput.Email))
+            if (await EmailExists(userInput.Email))
             {
-                throw new ArgumentException("Email already exists");
+                return new UserOperationResult
+                {
+                    ErrorCode = "EmailTaken",
+                    ErrorMessage = "Email already exists",
+                    Success = false
+                };
             }
             if (!IsValidEmail(userInput.Email))
             {
-                throw new ArgumentException("Invalid email format");
+                return new UserOperationResult
+                {
+                    ErrorCode = "InvalidEmail",
+                    ErrorMessage = "Email is not valid",
+                    Success = false
+                };
             }
 
             await SaveUser(userInput);
+            return new UserOperationResult
+            {
+                Success = true
+            };
         }
 
         /// <summary>
@@ -68,17 +82,27 @@ namespace com.awawawiwa.Services
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task DeleteUserAsync(Guid userId)
+        public async Task<UserOperationResult> DeleteUserAsync(Guid userId)
         {
             var user = await _context.Users.FindAsync(userId);
 
-            if(user == null)
+            if (user == null)
             {
-                throw new ObjectNotFoundException("User not found");
+                return new UserOperationResult
+                {
+                    ErrorCode = "UserNotFound",
+                    ErrorMessage = "User not found",
+                    Success = false
+                };
             }
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
+
+            return new UserOperationResult
+            {
+                Success = true
+            };
         }
 
         /// <summary>
@@ -86,26 +110,28 @@ namespace com.awawawiwa.Services
         /// </summary>
         /// <param name="userInputDTO"></param>
         /// <returns></returns>
-        /// <exception cref="ObjectNotFoundException"></exception>
-        /// <exception cref="UnauthorizedAccessException"></exception>
-        public async Task<string> LoginUserAsync(UserInputDTO userInputDTO)
+        public async Task<LoginUserOutputDTO> LoginUserAsync(LoginUserInputDTO userInputDTO)
         {
             var userEntity = await _context.Users
                 .FirstOrDefaultAsync(u => u.Username == userInputDTO.Username);
 
             if (userEntity == null)
             {
-                throw new ObjectNotFoundException("Incorrect Username or Password");
+                return null;
             }
 
-            if(!PasswordHasherService.VerifyPassword(userInputDTO.Password, userEntity.Salt, userEntity.Password))
+            if (!PasswordHasherService.VerifyPassword(userInputDTO.Password, userEntity.Salt, userEntity.Password))
             {
-                throw new UnauthorizedAccessException("Incorrect Username or Password");
+                return null;
             }
 
             var token = _jwtService.GenerateToken(userEntity.UserId);
-            return token;
 
+            return new LoginUserOutputDTO
+            {
+                UserId = userEntity.UserId,
+                Token = token
+            };
         }
 
         /// <summary>
@@ -113,7 +139,7 @@ namespace com.awawawiwa.Services
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        public void LogoutUserAsync(string token)
+        public void LogoutUser(string token)
         {
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(token);
@@ -128,7 +154,7 @@ namespace com.awawawiwa.Services
             _revokedTokensService.RevokeToken(jti);
         }
 
-        private async Task SaveUser(UserInputDTO userInput)
+        private async Task SaveUser(CreateUserInputDTO userInput)
         {
             var userEntity = UserMapper.ToEntity(userInput);
             userEntity.UserId = Guid.NewGuid(); // Generate a new GUID for the user ID
@@ -136,15 +162,15 @@ namespace com.awawawiwa.Services
             _context.Add(userEntity);
             await _context.SaveChangesAsync();
         }
-        
-        private bool UsernameExists(string username)
+
+        private async Task<bool> UsernameExists(string username)
         {
-            return _context.Users.Any(e => e.Username == username);
+            return await _context.Users.AnyAsync(e => e.Username == username);
         }
 
-        private bool EmailExists(string email)
+        private async Task<bool> EmailExists(string email)
         {
-            return _context.Users.Any(e => e.Email == email);
+            return await _context.Users.AnyAsync(e => e.Email == email);
         }
 
         private static bool IsValidEmail(string email)

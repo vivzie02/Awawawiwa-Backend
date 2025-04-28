@@ -10,15 +10,15 @@
 using com.awawawiwa.DTOs;
 using com.awawawiwa.Services;
 using IO.Swagger.Attributes;
-using IO.Swagger.Models;
 using IO.Swagger.Security;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace IO.Swagger.Controllers
@@ -41,31 +41,6 @@ namespace IO.Swagger.Controllers
         }
 
         /// <summary>
-        /// Get all questions
-        /// </summary>
-        /// <response code="200">A list of questions</response>
-        /// <response code="500">Internal Server Error</response>
-        [HttpGet]
-        [ValidateModelState]
-        [SwaggerOperation("QuestionsGet")]
-        [SwaggerResponse(statusCode: 200, type: typeof(List<Question>), description: "A list of questions")]
-        public virtual IActionResult QuestionsGet()
-        {
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default(List<Question>));
-
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
-            string exampleJson = null;
-            exampleJson = "[ {\n  \"Answer\" : \"Paris\",\n  \"Type\" : \"Multiple Choice\",\n  \"questionId\" : \"550e8400-e29b-41d4-a716-446655440000\",\n  \"Category\" : \"History\",\n  \"Question\" : \"What is the capital of France?\"\n}, {\n  \"Answer\" : \"Paris\",\n  \"Type\" : \"Multiple Choice\",\n  \"questionId\" : \"550e8400-e29b-41d4-a716-446655440000\",\n  \"Category\" : \"History\",\n  \"Question\" : \"What is the capital of France?\"\n} ]";
-
-            var example = exampleJson != null
-            ? JsonConvert.DeserializeObject<List<Question>>(exampleJson)
-            : default(List<Question>);            //TODO: Change the data returned
-            return new ObjectResult(example);
-        }
-
-        /// <summary>
         /// Create a new question
         /// </summary>
         /// <param name="questionInputDTO"></param>
@@ -77,17 +52,15 @@ namespace IO.Swagger.Controllers
         [SwaggerOperation("CreateQuestion")]
         public virtual async Task<IActionResult> CreateQuestionAsync([FromBody] QuestionInputDTO questionInputDTO)
         {
-            try
-            {
-                var userId = User.FindFirst("userId")?.Value;
+            var userId = User.FindFirst("userId")?.Value;
+            var result = await _questionService.CreateQuestionAsync(questionInputDTO, userId);
 
-                await _questionService.CreateQuestionAsync(questionInputDTO, userId);
-                return Ok();
-            }
-            catch (ArgumentException ex)
+            if (!result.Success)
             {
-                return Conflict(new { message = ex.Message });
+                return Conflict(new { message = result.ErrorMessage });
             }
+
+            return Ok();
         }
 
         /// <summary>
@@ -99,49 +72,54 @@ namespace IO.Swagger.Controllers
         [HttpGet("{questionId}")]
         [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
         [ValidateModelState]
-        [SwaggerOperation("QuestionsQuestionIdGet")]
-        [SwaggerResponse(statusCode: 200, type: typeof(Question), description: "A question")]
-        public virtual IActionResult QuestionsQuestionIdGet([FromRoute][Required] string questionId)
+        [SwaggerOperation("GetQuestionById")]
+        [SwaggerResponse(200, description: "Get question by id")]
+        [SwaggerResponse(404, description: "Question not found")]
+        [SwaggerResponse(403, description: "Not logged in")]
+        public virtual async Task<IActionResult> GetQuestionByIdAsync(Guid questionId)
         {
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default(Question));
+            var question = await _questionService.GetQuestionByIdAsync(questionId);
 
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
-            string exampleJson = null;
-            exampleJson = "{\n  \"Answer\" : \"Paris\",\n  \"Type\" : \"Multiple Choice\",\n  \"questionId\" : \"550e8400-e29b-41d4-a716-446655440000\",\n  \"Category\" : \"History\",\n  \"Question\" : \"What is the capital of France?\"\n}";
+            if (question == null)
+            {
+                return NotFound(new { message = "Question not found" });
+            }
 
-            var example = exampleJson != null
-            ? JsonConvert.DeserializeObject<Question>(exampleJson)
-            : default(Question);            //TODO: Change the data returned
-            return new ObjectResult(example);
+            return Ok(question);
         }
 
         /// <summary>
-        /// Get random question from category
+        /// Get Question by id
         /// </summary>
-        /// <param name="category"></param>
-        /// <response code="200">A list of questions</response>
+        /// <param name="questionId"></param>
+        /// <response code="200">A question</response>
         /// <response code="500">Internal Server Error</response>
-        [HttpGet("{category}")]
+        [HttpDelete("{questionId}")]
         [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
         [ValidateModelState]
-        [SwaggerOperation("QuestionsRandomCategoryGet")]
-        [SwaggerResponse(statusCode: 200, type: typeof(List<Question>), description: "A list of questions")]
-        public virtual IActionResult QuestionsRandomCategoryGet([FromRoute][Required] string category)
+        [SwaggerOperation("DeleteQuestionById")]
+        [SwaggerResponse(200, description: "Successfully deleted question")]
+        [SwaggerResponse(404, description: "Question not found")]
+        [SwaggerResponse(403, description: "Not logged in")]
+        public virtual async Task<IActionResult> DeleteQuestionByIdAsync(Guid questionId)
         {
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default(List<Question>));
+            var loggedInUser = User.FindFirst("userId")?.Value;
 
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
-            string exampleJson = null;
-            exampleJson = "[ {\n  \"Answer\" : \"Paris\",\n  \"Type\" : \"Multiple Choice\",\n  \"questionId\" : \"550e8400-e29b-41d4-a716-446655440000\",\n  \"Category\" : \"History\",\n  \"Question\" : \"What is the capital of France?\"\n}, {\n  \"Answer\" : \"Paris\",\n  \"Type\" : \"Multiple Choice\",\n  \"questionId\" : \"550e8400-e29b-41d4-a716-446655440000\",\n  \"Category\" : \"History\",\n  \"Question\" : \"What is the capital of France?\"\n} ]";
+            var result = await _questionService.DeleteQuestionByIdAsync(questionId, loggedInUser);
 
-            var example = exampleJson != null
-            ? JsonConvert.DeserializeObject<List<Question>>(exampleJson)
-            : default(List<Question>);            //TODO: Change the data returned
-            return new ObjectResult(example);
+            if (!result.Success)
+            {
+                if (result.ErrorCode == "QuestionNotFound")
+                {
+                    return NotFound(new { message = result.ErrorMessage });
+                }
+                else if (result.ErrorCode == "NotAuthorized")
+                {
+                    return Unauthorized(new { message = result.ErrorMessage });
+                }
+            }
+
+            return Ok();
         }
 
         /// <summary>
@@ -152,22 +130,100 @@ namespace IO.Swagger.Controllers
         [HttpGet("random")]
         [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
         [ValidateModelState]
-        [SwaggerOperation("QuestionsRandomGet")]
-        [SwaggerResponse(statusCode: 200, type: typeof(Question), description: "A question")]
-        public virtual IActionResult QuestionsRandomGet()
+        [SwaggerOperation("GetRandomQuestion")]
+        [SwaggerResponse(statusCode: 200, description: "Get a random question")]
+        public virtual async Task<IActionResult> GetRandomQuestionAsync()
         {
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200, default(Question));
+            var question = await _questionService.GetRandomQuestionAsync();
 
-            //TODO: Uncomment the next line to return response 500 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(500);
-            string exampleJson = null;
-            exampleJson = "{\n  \"Answer\" : \"Paris\",\n  \"Type\" : \"Multiple Choice\",\n  \"questionId\" : \"550e8400-e29b-41d4-a716-446655440000\",\n  \"Category\" : \"History\",\n  \"Question\" : \"What is the capital of France?\"\n}";
+            if (question == null)
+            {
+                return NotFound(new { message = "No questions found" });
+            }
 
-            var example = exampleJson != null
-            ? JsonConvert.DeserializeObject<Question>(exampleJson)
-            : default(Question);            //TODO: Change the data returned
-            return new ObjectResult(example);
+            return Ok(question);
+        }
+
+        /// <summary>
+        /// Get random question from category
+        /// </summary>
+        /// <param name="category"></param>
+        /// <response code="200">A list of questions</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpGet("random/{category}")]
+        [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
+        [ValidateModelState]
+        [SwaggerOperation("QuestionsRandomCategoryGet")]
+        [SwaggerResponse(statusCode: 200, description: "Get random question from category")]
+        public virtual async Task<IActionResult> QuestionsRandomCategoryGet([FromRoute][Required] string category)
+        {
+            var question = await _questionService.GetRandomQuestionByCategoryAsync(category);
+
+            if(question == null)
+            {
+                return NotFound(new { message = "No questions found" });
+            }
+
+            return Ok(question);
+        }
+
+        /// <summary>
+        /// update question
+        /// </summary>
+        /// <param name="questionId"></param>
+        /// <param name="questionInputDTO"></param>
+        /// <response code="200">A list of questions</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpPatch("{questionId}")]
+        [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
+        [ValidateModelState]
+        [SwaggerOperation("QuestionsRandomCategoryGet")]
+        [SwaggerResponse(statusCode: 200, description: "Get random question from category")]
+        public virtual async Task<IActionResult> UpdateQuestion([FromRoute][Required] Guid questionId, [FromBody] QuestionInputDTO questionInputDTO)
+        {
+            var loggedInUser = User.FindFirst("userId")?.Value;
+
+            var result = await _questionService.UpdateQuestionAsync(questionId, loggedInUser, questionInputDTO);
+
+            if (!result.Success)
+            {
+                if(result.ErrorCode == "QuestionNotFound")
+                {
+                    return NotFound(new { message = result.ErrorMessage });
+                }
+                else if (result.ErrorCode == "NotAuthorized")
+                {
+                    return Unauthorized(new { message = result.ErrorMessage });
+                }
+            }
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// get questions by userId
+        /// </summary>
+        /// <param name="questionId"></param>
+        /// <param name="questionInputDTO"></param>
+        /// <response code="200">A list of questions</response>
+        /// <response code="500">Internal Server Error</response>
+        [HttpGet("user")]
+        [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
+        [ValidateModelState]
+        [SwaggerOperation("QuestionsRandomCategoryGet")]
+        [SwaggerResponse(statusCode: 200, description: "Get random question from category")]
+        public virtual async Task<IActionResult> GetQuestionsByUserIdAsync()
+        {
+            var loggedInUser = User.FindFirst("userId")?.Value;
+
+            var questionOutputDTOs = await _questionService.GetQuestionsByUserIdAsync(Guid.Parse(loggedInUser));
+
+            if (!questionOutputDTOs.Any())
+            {
+                return NotFound(new { message = "No questions found" });
+            }
+
+            return Ok(questionOutputDTOs);
         }
     }
 }

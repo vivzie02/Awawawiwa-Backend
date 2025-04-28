@@ -1,4 +1,5 @@
 ﻿using com.awawawiwa.DTOs;
+using com.awawawiwa.Models;
 using System;
 using System.Threading.Tasks;
 
@@ -14,27 +15,27 @@ namespace com.awawawiwa.Services
         /// </summary>
         /// <param name="userInput"></param>
         /// <returns></returns>
-        Task CreateUserAsync(UserInputDTO userInput);
+        Task<UserOperationResult> CreateUserAsync(CreateUserInputDTO userInput);
 
         /// <summary>
         /// create a new user
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        Task DeleteUserAsync(Guid userId);
+        Task<UserOperationResult> DeleteUserAsync(Guid userId);
 
         /// <summary>
         /// login user
         /// </summary>
         /// <param name="userInputDTO"></param>
         /// <returns></returns>
-        Task<string> LoginUserAsync(UserInputDTO userInputDTO);
+        Task<LoginUserOutputDTO> LoginUserAsync(LoginUserInputDTO userInputDTO);
 
         /// <summary>
         /// logout user
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        void LogoutUserAsync(string token);
+        void LogoutUser(string token);
     }
 }
