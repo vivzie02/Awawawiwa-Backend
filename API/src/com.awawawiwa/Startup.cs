@@ -101,10 +101,13 @@ namespace IO.Swagger
 
             services.AddDbContext<UserContext>(options =>
                 options.UseNpgsql(connectionString));
+            services.AddDbContext<QuestionContext>(options =>
+                options.UseNpgsql(connectionString));
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IRevokedTokensService, RevokedTokensService>();
+            services.AddScoped<IQuestionService, QuestionService>();
         }
 
         /// <summary>
@@ -138,8 +141,8 @@ namespace IO.Swagger
 
             using (var scope = app.ApplicationServices.CreateScope())
             {
-                var db = scope.ServiceProvider.GetRequiredService<UserContext>();
-                db.Database.Migrate();
+                scope.ServiceProvider.GetRequiredService<UserContext>().Database.Migrate();
+                scope.ServiceProvider.GetRequiredService<QuestionContext>().Database.Migrate();
             }
 
             app.UseEndpoints(endpoints =>

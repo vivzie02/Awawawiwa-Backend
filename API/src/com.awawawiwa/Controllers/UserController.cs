@@ -32,6 +32,10 @@ namespace IO.Swagger.Controllers
     {
         private readonly IUserService _userService;
 
+        /// <summary>
+        /// constructor
+        /// </summary>
+        /// <param name="userService"></param>
         public UserController(IUserService userService)
         {
             _userService = userService;
@@ -65,7 +69,6 @@ namespace IO.Swagger.Controllers
             }
             catch (IOException ex)
             {
-                // Log the exception (ex) here if needed
                 return StatusCode(500, new { message = "Internal Server Error" });
             }
         }
@@ -94,11 +97,6 @@ namespace IO.Swagger.Controllers
             {
                 return Conflict(new { message = ex.Message });
             }
-            catch (IOException ex)
-            {
-                // Log the exception (ex) here if needed
-                return StatusCode(500, new { message = "Internal Server Error" });
-            }
         }
 
         /// <summary>
@@ -118,9 +116,12 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 404, description: "User not found")]
         public virtual async Task<IActionResult> DeleteUserAsync(Guid userId)
         {
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
             try
             {
                 await _userService.DeleteUserAsync(userId);
+                _userService.LogoutUserAsync(token);
                 return Ok();
             }
             catch (ObjectNotFoundException ex)
