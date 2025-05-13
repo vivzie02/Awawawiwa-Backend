@@ -53,7 +53,7 @@ namespace IO.Swagger.Controllers
 
             var loginUserOutputDTO = await _userService.LoginUserAsync(userInputDTO);
 
-            if (string.IsNullOrEmpty(loginUserOutputDTO.Token))
+            if (string.IsNullOrEmpty(loginUserOutputDTO?.Token))
             {
                 return Unauthorized(new { message = "Invalid username or password" });
             }
