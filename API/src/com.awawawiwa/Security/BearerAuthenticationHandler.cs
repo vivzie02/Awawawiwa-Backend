@@ -1,12 +1,15 @@
 using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using com.awawawiwa.Security;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace IO.Swagger.Security
 {
@@ -20,8 +23,11 @@ namespace IO.Swagger.Security
         /// </summary>
         public const string SchemeName = "Bearer";
 
-        public BearerAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
+        public readonly IRevokedTokensService _revokedTokensService;
+
+        public BearerAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IRevokedTokensService revokedTokensService) : base(options, logger, encoder, clock)
         {
+            _revokedTokensService = revokedTokensService;
         }
 
         /// <summary>
@@ -37,22 +43,69 @@ namespace IO.Swagger.Security
             {
                 var authHeader = AuthenticationHeaderValue.Parse(Request.Headers["Authorization"]);
 
-                /// TODO handle token.
+                if (authHeader.Scheme != SchemeName)
+                {
+                    return AuthenticateResult.Fail("Invalid Authorization Header");
+                }
+
+                var token = authHeader.Parameter;
+                var principal = ValidateToken(token);
+                if(principal == null)
+                {
+                    return AuthenticateResult.Fail("Invalid Token");
+                }
+
+                var ticket = new AuthenticationTicket(principal, SchemeName);
+                return AuthenticateResult.Success(ticket);
             }
             catch
             {
                 return AuthenticateResult.Fail("Invalid Authorization Header");
             }
+        }
 
-            var claims = new[] {
-                new Claim(ClaimTypes.NameIdentifier, "changeme"),
-                new Claim(ClaimTypes.Name, "changeme"),
-            };
-            var identity = new ClaimsIdentity(claims, Scheme.Name);
-            var principal = new ClaimsPrincipal(identity);
-            var ticket = new AuthenticationTicket(principal, Scheme.Name);
+        /// <summary>
+        /// Validates the JWT token and returns the ClaimsPrincipal if valid.
+        /// </summary>
+        private ClaimsPrincipal ValidateToken(string token)
+        {
+            try
+            {
+                var jwtKey = Environment.GetEnvironmentVariable("Jwt_Key"); // Secret key for signing
 
-            return AuthenticateResult.Success(ticket);
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var key = Encoding.ASCII.GetBytes(jwtKey); // Secret key for signing
+
+                // Token validation parameters
+                var validationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidIssuer = "awawawiwa-api",
+                    ValidAudience = "awawawiwa-users" 
+                };
+
+                // Validate the token and return the claims principal
+                var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
+
+                //check if the token is revoked
+                var jwtToken = tokenHandler.ReadJwtToken(token);
+                var jti = jwtToken.Id;
+
+                if (!string.IsNullOrEmpty(jti) && _revokedTokensService.IsTokenRevoked(jti))
+                {
+                    return null; // Return null if the token is revoked
+                }
+
+                return principal; // Returns a ClaimsPrincipal with the validated claims
+            }
+            catch (Exception ex)
+            {
+                return null; // Return null if token validation fails
+            }
         }
     }
 }
