@@ -203,8 +203,6 @@ namespace IO.Swagger.Controllers
         /// <summary>
         /// get questions by userId
         /// </summary>
-        /// <param name="questionId"></param>
-        /// <param name="questionInputDTO"></param>
         /// <response code="200">A list of questions</response>
         /// <response code="500">Internal Server Error</response>
         [HttpGet("user")]
