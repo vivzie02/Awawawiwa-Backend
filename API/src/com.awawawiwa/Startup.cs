@@ -77,6 +77,16 @@ namespace IO.Swagger
             services.AddAuthentication(BearerAuthenticationHandler.SchemeName)
                 .AddScheme<AuthenticationSchemeOptions, BearerAuthenticationHandler>(BearerAuthenticationHandler.SchemeName, null);
 
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactApp",
+                    builder => builder
+                        .WithOrigins("http://localhost:5173")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials());
+            });
+
 
             services
                 .AddSwaggerGen(c =>
@@ -118,6 +128,8 @@ namespace IO.Swagger
         /// <param name="loggerFactory"></param>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            app.UseCors("AllowReactApp");
+
             app.UseRouting();
 
             //TODO: Uncomment this if you need wwwroot folder
