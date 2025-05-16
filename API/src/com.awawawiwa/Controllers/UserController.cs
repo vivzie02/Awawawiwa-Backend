@@ -124,7 +124,6 @@ namespace IO.Swagger.Controllers
         /// <summary>
         /// Logout user
         /// </summary>
-        /// <param name="userId"></param>
         /// <response code="201">Successfully deleted user</response>
         /// <response code="500">Internal Server Error</response>
         /// <response code="404">User not found</response>
@@ -147,6 +146,28 @@ namespace IO.Swagger.Controllers
 
             _userService.LogoutUser(token);
             return Ok();
+        }
+
+        /// <summary>
+        /// Get user data
+        /// </summary>
+        /// <response code="201">Successfully deleted user</response>
+        /// <response code="500">Internal Server Error</response>
+        /// <response code="404">User not found</response>
+        [HttpGet("me")]
+        [ValidateModelState]
+        [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
+        [SwaggerOperation("LogoutUser")]
+        [SwaggerResponse(statusCode: 201, description: "Successfully logged out user")]
+        [SwaggerResponse(statusCode: 403, description: "Forbidden - can't logout other users")]
+        [SwaggerResponse(statusCode: 500, description: "Internal Server Error")]
+        [SwaggerResponse(statusCode: 404, description: "User not found")]
+        public virtual async Task<IActionResult> GetUserDataAsync()
+        {
+            var userId = User.FindFirst("userId")?.Value;
+
+            var userData = await _userService.GetUserDataAsync(Guid.Parse(userId));
+            return Ok(userData);
         }
     }
 }

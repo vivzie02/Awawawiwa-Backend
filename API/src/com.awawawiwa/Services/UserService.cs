@@ -154,6 +154,28 @@ namespace com.awawawiwa.Services
             _revokedTokensService.RevokeToken(jti);
         }
 
+        /// <summary>
+        /// GetUserDataAsync
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task<UserDataOutputDTO> GetUserDataAsync(Guid token)
+        {
+            var userEntity = await _context.Users
+                .FirstOrDefaultAsync(u => u.UserId == token);
+
+            var userDataOutputDTO = new UserDataOutputDTO
+            {
+                Id = userEntity.UserId,
+                Username = userEntity.Username,
+                Email = userEntity.Email,
+                Rating = userEntity.Rating
+            };
+
+            return userDataOutputDTO;
+        }
+
         private async Task SaveUser(CreateUserInputDTO userInput)
         {
             var userEntity = UserMapper.ToEntity(userInput);
