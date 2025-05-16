@@ -37,5 +37,12 @@ namespace com.awawawiwa.Services
         /// <param name="token"></param>
         /// <returns></returns>
         void LogoutUser(string token);
+
+        /// <summary>
+        /// GetUserDataAsync
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        Task<UserDataOutputDTO> GetUserDataAsync(Guid userId);
     }
 }
