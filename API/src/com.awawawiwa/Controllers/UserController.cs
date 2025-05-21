@@ -149,6 +149,33 @@ namespace IO.Swagger.Controllers
         }
 
         /// <summary>
+        /// Logout user
+        /// </summary>
+        /// <response code="201">Successfully deleted user</response>
+        /// <response code="500">Internal Server Error</response>
+        /// <response code="404">User not found</response>
+        [HttpPost("loginstatus")]
+        [ValidateModelState]
+        [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
+        [SwaggerOperation("LogoutUser")]
+        [SwaggerResponse(statusCode: 201, description: "Successfully logged out user")]
+        [SwaggerResponse(statusCode: 403, description: "Forbidden - can't logout other users")]
+        [SwaggerResponse(statusCode: 500, description: "Internal Server Error")]
+        [SwaggerResponse(statusCode: 404, description: "User not found")]
+        public virtual IActionResult IsUserLoggedIn()
+        {
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+            if (string.IsNullOrEmpty(token))
+            {
+                return BadRequest("No token found");
+            }
+
+            var loginStatus = _userService.IsUserLoggedIn(token);
+            return Ok(loginStatus);
+        }
+
+        /// <summary>
         /// Get user data
         /// </summary>
         /// <response code="201">Successfully deleted user</response>
