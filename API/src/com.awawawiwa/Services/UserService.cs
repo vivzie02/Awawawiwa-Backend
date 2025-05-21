@@ -56,7 +56,7 @@ namespace com.awawawiwa.Services
                 return new UserOperationResult
                 {
                     ErrorCode = "EmailTaken",
-                    ErrorMessage = "Email already exists",
+                    ErrorMessage = "Email already in use",
                     Success = false
                 };
             }
@@ -157,13 +157,13 @@ namespace com.awawawiwa.Services
         /// <summary>
         /// GetUserDataAsync
         /// </summary>
-        /// <param name="token"></param>
+        /// <param name="userId"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public async Task<UserDataOutputDTO> GetUserDataAsync(Guid token)
+        public async Task<UserDataOutputDTO> GetUserDataAsync(Guid userId)
         {
             var userEntity = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserId == token);
+                .FirstOrDefaultAsync(u => u.UserId == userId);
 
             var userDataOutputDTO = new UserDataOutputDTO
             {
@@ -174,6 +174,24 @@ namespace com.awawawiwa.Services
             };
 
             return userDataOutputDTO;
+        }
+
+        /// <summary>
+        /// IsUserLoggedIn
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public UserLoggedInStatusOutputDTO IsUserLoggedIn(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+
+            var jti = jwtToken?.Id; // Unique token ID
+
+            return new UserLoggedInStatusOutputDTO
+            {
+                IsLoggedIn = !string.IsNullOrEmpty(jti) && !_revokedTokensService.IsTokenRevoked(jti)
+            };
         }
 
         private async Task SaveUser(CreateUserInputDTO userInput)
