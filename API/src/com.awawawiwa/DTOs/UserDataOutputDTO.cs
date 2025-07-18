@@ -26,5 +26,10 @@ namespace com.awawawiwa.DTOs
         /// Rating
         /// </summary>
         public int Rating { get; set; }
+
+        /// <summary>
+        /// ProfilePicture
+        /// </summary>
+        public string ProfilePicture { get; set; }
     }
 }

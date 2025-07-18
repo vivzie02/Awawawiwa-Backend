@@ -43,5 +43,11 @@ namespace com.awawawiwa.Data.Entities
         /// </summary>
         [Column("rating")]
         public int Rating { get; set; }
+
+        /// <summary>
+        /// Profile picture URL
+        /// </summary>
+        [Column("profilePictureUrl")]
+        public string ProfilePictureUrl { get; set; }
     }
 }
