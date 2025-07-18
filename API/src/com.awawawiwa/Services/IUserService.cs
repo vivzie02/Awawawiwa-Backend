@@ -1,5 +1,6 @@
 ﻿using com.awawawiwa.DTOs;
 using com.awawawiwa.Models;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Threading.Tasks;
 
@@ -39,10 +40,19 @@ namespace com.awawawiwa.Services
         void LogoutUser(string token);
 
         /// <summary>
+        /// logout user
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        UserLoggedInStatusOutputDTO IsUserLoggedIn(string token);
+
+        /// <summary>
         /// GetUserDataAsync
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
         Task<UserDataOutputDTO> GetUserDataAsync(Guid userId);
+
+        Task<UserOperationResult> UploadProfilePictureAsync(Guid userId, IFormFile profilePicture);
     }
 }

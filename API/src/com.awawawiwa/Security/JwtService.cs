@@ -45,7 +45,7 @@ namespace com.awawawiwa.Security
                 issuer: _config["Jwt:Issuer"],
                 audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(30),
+                expires: DateTime.Now.AddHours(3),
                 signingCredentials: creds
             );
 

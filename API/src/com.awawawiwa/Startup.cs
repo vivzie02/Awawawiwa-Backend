@@ -133,7 +133,7 @@ namespace IO.Swagger
             app.UseRouting();
 
             //TODO: Uncomment this if you need wwwroot folder
-            // app.UseStaticFiles();
+            app.UseStaticFiles();
 
             app.UseAuthorization();
             app.UseAuthentication();

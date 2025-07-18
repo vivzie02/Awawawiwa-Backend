@@ -12,9 +12,11 @@ using com.awawawiwa.Services;
 using IO.Swagger.Attributes;
 using IO.Swagger.Security;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace IO.Swagger.Controllers
@@ -50,7 +52,6 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(401, "Invalid username or password")]
         public virtual async Task<IActionResult> LoginUserAsync([FromBody] LoginUserInputDTO userInputDTO)
         {
-
             var loginUserOutputDTO = await _userService.LoginUserAsync(userInputDTO);
 
             if (string.IsNullOrEmpty(loginUserOutputDTO?.Token))
@@ -149,6 +150,33 @@ namespace IO.Swagger.Controllers
         }
 
         /// <summary>
+        /// Logout user
+        /// </summary>
+        /// <response code="201">Successfully deleted user</response>
+        /// <response code="500">Internal Server Error</response>
+        /// <response code="404">User not found</response>
+        [HttpPost("loginstatus")]
+        [ValidateModelState]
+        [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
+        [SwaggerOperation("LogoutUser")]
+        [SwaggerResponse(statusCode: 201, description: "Successfully got user status")]
+        [SwaggerResponse(statusCode: 403, description: "Forbidden - can't access other users' data")]
+        [SwaggerResponse(statusCode: 500, description: "Internal Server Error")]
+        [SwaggerResponse(statusCode: 404, description: "User not found")]
+        public virtual IActionResult IsUserLoggedIn()
+        {
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+            if (string.IsNullOrEmpty(token))
+            {
+                return BadRequest("No token found");
+            }
+
+            var loginStatus = _userService.IsUserLoggedIn(token);
+            return Ok(loginStatus);
+        }
+
+        /// <summary>
         /// Get user data
         /// </summary>
         /// <response code="201">Successfully deleted user</response>
@@ -158,8 +186,8 @@ namespace IO.Swagger.Controllers
         [ValidateModelState]
         [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
         [SwaggerOperation("LogoutUser")]
-        [SwaggerResponse(statusCode: 201, description: "Successfully logged out user")]
-        [SwaggerResponse(statusCode: 403, description: "Forbidden - can't logout other users")]
+        [SwaggerResponse(statusCode: 201, description: "Successfully got user data")]
+        [SwaggerResponse(statusCode: 403, description: "Forbidden - can't access other users' data")]
         [SwaggerResponse(statusCode: 500, description: "Internal Server Error")]
         [SwaggerResponse(statusCode: 404, description: "User not found")]
         public virtual async Task<IActionResult> GetUserDataAsync()
@@ -168,6 +196,39 @@ namespace IO.Swagger.Controllers
 
             var userData = await _userService.GetUserDataAsync(Guid.Parse(userId));
             return Ok(userData);
+        }
+
+        /// <summary>
+        /// Upload profile picture for the logged-in user
+        /// </summary>
+        /// <response code="201">Successfully deleted user</response>
+        /// <response code="500">Internal Server Error</response>
+        /// <response code="404">User not found</response>
+        [HttpPost("me/profilePicture")]
+        [ValidateModelState]
+        [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
+        [SwaggerOperation("UploadProfilePicture")]
+        [SwaggerResponse(statusCode: 201, description: "Successfully logged out user")]
+        [SwaggerResponse(statusCode: 403, description: "Forbidden - can't logout other users")]
+        [SwaggerResponse(statusCode: 500, description: "Internal Server Error")]
+        [SwaggerResponse(statusCode: 404, description: "User not found")]
+        public virtual async Task<IActionResult> UploadProfilePicture([FromForm] IFormFile profilePicture)
+        {
+            var userId = User.FindFirst("userId")?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest("No user ID found");
+            }
+
+            var result = await _userService.UploadProfilePictureAsync(Guid.Parse(userId), profilePicture);
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
         }
     }
 }

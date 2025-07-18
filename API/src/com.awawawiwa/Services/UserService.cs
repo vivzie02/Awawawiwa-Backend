@@ -3,9 +3,12 @@ using com.awawawiwa.DTOs;
 using com.awawawiwa.Mappers;
 using com.awawawiwa.Models;
 using com.awawawiwa.Security;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static com.awawawiwa.Constants.Constants;
@@ -56,7 +59,7 @@ namespace com.awawawiwa.Services
                 return new UserOperationResult
                 {
                     ErrorCode = "EmailTaken",
-                    ErrorMessage = "Email already exists",
+                    ErrorMessage = "Email already in use",
                     Success = false
                 };
             }
@@ -157,23 +160,112 @@ namespace com.awawawiwa.Services
         /// <summary>
         /// GetUserDataAsync
         /// </summary>
-        /// <param name="token"></param>
+        /// <param name="userId"></param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public async Task<UserDataOutputDTO> GetUserDataAsync(Guid token)
+        public async Task<UserDataOutputDTO> GetUserDataAsync(Guid userId)
         {
             var userEntity = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserId == token);
+                .FirstOrDefaultAsync(u => u.UserId == userId);
 
             var userDataOutputDTO = new UserDataOutputDTO
             {
                 Id = userEntity.UserId,
                 Username = userEntity.Username,
                 Email = userEntity.Email,
-                Rating = userEntity.Rating
+                Rating = userEntity.Rating,
+                ProfilePicture = userEntity.ProfilePictureUrl
             };
 
             return userDataOutputDTO;
+        }
+
+        /// <summary>
+        /// IsUserLoggedIn
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public UserLoggedInStatusOutputDTO IsUserLoggedIn(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+
+            var jti = jwtToken?.Id; // Unique token ID
+
+            var isLoggedIn = !string.IsNullOrEmpty(jti) && !_revokedTokensService.IsTokenRevoked(jti);
+            return new UserLoggedInStatusOutputDTO
+            {
+                IsLoggedIn = isLoggedIn
+            };
+        }
+
+        public async Task<UserOperationResult> UploadProfilePictureAsync(Guid userId, IFormFile profilePicture)
+        {
+            var user = await _context.Users.FindAsync(userId);
+
+            if (user == null)
+            {
+                return new UserOperationResult
+                {
+                    ErrorCode = "UserNotFound",
+                    ErrorMessage = "User not found",
+                    Success = false
+                };
+            }
+
+            if (profilePicture == null || profilePicture.Length == 0)
+            {
+                return new UserOperationResult
+                {
+                    ErrorCode = "InvalidProfilePicture",
+                    ErrorMessage = "No profile picture provided",
+                    Success = false
+                };
+            }
+
+            var extension = Path.GetExtension(profilePicture.FileName);
+            var fileName = $"{Guid.NewGuid()}{extension}";
+
+            var allowedTypes = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            if (!allowedTypes.Contains(extension))
+            {
+                return new UserOperationResult
+                {
+                    Success = false,
+                    ErrorCode = "InvalidFileType",
+                    ErrorMessage = "Only image files are allowed"
+                };
+            }
+
+            var uploadDir = Path.Combine("wwwroot", "uploads", "profilePictures");
+            Directory.CreateDirectory(uploadDir); // Will only create if not exists
+
+            var path = Path.Combine("wwwroot/uploads/profilePictures", fileName);
+
+            using (var stream = new FileStream(path, FileMode.Create))
+            {
+                await profilePicture.CopyToAsync(stream);
+            }
+
+            // Save file path or URL to database for the user
+            await SaveProfilePictureUrlAsync(userId, $"/uploads/profilePictures/{fileName}");
+
+            return new UserOperationResult
+            {
+                Success = true
+            };
+        }
+
+        private async Task SaveProfilePictureUrlAsync(Guid userId, string filePath)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                throw new ArgumentException("User not found");
+            }
+
+            user.ProfilePictureUrl = filePath;
+            await _context.SaveChangesAsync();
         }
 
         private async Task SaveUser(CreateUserInputDTO userInput)
