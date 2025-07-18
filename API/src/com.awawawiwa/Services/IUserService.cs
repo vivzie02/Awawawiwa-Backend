@@ -1,5 +1,6 @@
 ﻿using com.awawawiwa.DTOs;
 using com.awawawiwa.Models;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Threading.Tasks;
 
@@ -51,5 +52,7 @@ namespace com.awawawiwa.Services
         /// <param name="token"></param>
         /// <returns></returns>
         Task<UserDataOutputDTO> GetUserDataAsync(Guid userId);
+
+        Task<UserOperationResult> UploadProfilePictureAsync(Guid userId, IFormFile profilePicture);
     }
 }
