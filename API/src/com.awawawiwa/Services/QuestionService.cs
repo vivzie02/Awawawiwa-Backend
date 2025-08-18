@@ -155,7 +155,7 @@ namespace com.awawawiwa.Services
         }
 
         /// <summary>
-        /// UpdateQuesetionAsync
+        /// UpdateQuestionAsync
         /// </summary>
         /// <param name="questionId"></param>
         /// <param name="loggedInUser"></param>

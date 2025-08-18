@@ -9,5 +9,10 @@
         /// IsLoggedIn
         /// </summary>
         public bool IsLoggedIn { get; set; }
+
+        /// <summary>
+        /// ErrorMessage
+        /// </summary>
+        public string ErrorMessage { get; set; }
     }
 }
