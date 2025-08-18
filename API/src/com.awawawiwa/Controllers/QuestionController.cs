@@ -153,9 +153,9 @@ namespace IO.Swagger.Controllers
         [HttpGet("random/{category}")]
         [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
         [ValidateModelState]
-        [SwaggerOperation("QuestionsRandomCategoryGet")]
+        [SwaggerOperation("GetRandomQuestionByCategory")]
         [SwaggerResponse(statusCode: 200, description: "Get random question from category")]
-        public virtual async Task<IActionResult> QuestionsRandomCategoryGet([FromRoute][Required] string category)
+        public virtual async Task<IActionResult> GetRandomQuestionByCategoryAsync([FromRoute][Required] string category)
         {
             var question = await _questionService.GetRandomQuestionByCategoryAsync(category);
 
@@ -177,7 +177,7 @@ namespace IO.Swagger.Controllers
         [HttpPatch("{questionId}")]
         [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
         [ValidateModelState]
-        [SwaggerOperation("QuestionsRandomCategoryGet")]
+        [SwaggerOperation("UpdateQuestion")]
         [SwaggerResponse(statusCode: 200, description: "Get random question from category")]
         public virtual async Task<IActionResult> UpdateQuestion([FromRoute][Required] Guid questionId, [FromBody] QuestionInputDTO questionInputDTO)
         {
@@ -215,11 +215,6 @@ namespace IO.Swagger.Controllers
             var loggedInUser = User.FindFirst("userId")?.Value;
 
             var questionOutputDTOs = await _questionService.GetQuestionsByUserIdAsync(Guid.Parse(loggedInUser));
-
-            if (!questionOutputDTOs.Any())
-            {
-                return NotFound(new { message = "No questions found" });
-            }
 
             return Ok(questionOutputDTOs);
         }
