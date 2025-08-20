@@ -199,6 +199,12 @@ namespace com.awawawiwa.Services
             };
         }
 
+        /// <summary>
+        /// UploadProfilePictureAsync
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="profilePicture"></param>
+        /// <returns></returns>
         public async Task<UserOperationResult> UploadProfilePictureAsync(Guid userId, IFormFile profilePicture)
         {
             var user = await _context.Users.FindAsync(userId);
@@ -238,9 +244,19 @@ namespace com.awawawiwa.Services
             }
 
             var uploadDir = Path.Combine("wwwroot", "uploads", "profilePictures");
-            Directory.CreateDirectory(uploadDir); // Will only create if not exists
+            Directory.CreateDirectory(uploadDir);
 
             var path = Path.Combine("wwwroot/uploads/profilePictures", fileName);
+
+            //remove old picture
+            if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
+            {
+                var oldPath = Path.Combine("wwwroot", user.ProfilePictureUrl.TrimStart('/'));
+                if (File.Exists(oldPath))
+                {
+                    File.Delete(oldPath);
+                }
+            }
 
             using (var stream = new FileStream(path, FileMode.Create))
             {
@@ -248,11 +264,16 @@ namespace com.awawawiwa.Services
             }
 
             // Save file path or URL to database for the user
-            await SaveProfilePictureUrlAsync(userId, $"/uploads/profilePictures/{fileName}");
+            var fileUrl = $"/uploads/profilePictures/{fileName}";
+            await SaveProfilePictureUrlAsync(userId, fileUrl);
 
             return new UserOperationResult
             {
-                Success = true
+                Success = true,
+                UserData = new UserDataOutputDTO
+                {
+                    ProfilePicture = fileUrl
+                }
             };
         }
 
