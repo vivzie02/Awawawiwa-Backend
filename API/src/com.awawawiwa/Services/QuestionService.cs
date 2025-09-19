@@ -1,4 +1,6 @@
-﻿using com.awawawiwa.Data.Context;
+﻿using com.awawawiwa.Constants;
+using com.awawawiwa.Data.Context;
+using com.awawawiwa.Data.Entities;
 using com.awawawiwa.DTOs;
 using com.awawawiwa.Mappers;
 using com.awawawiwa.Models;
@@ -46,6 +48,15 @@ namespace com.awawawiwa.Services
                 {
                     ErrorCode = "QuestionExists",
                     ErrorMessage = "Question already exists",
+                    Success = false
+                };
+            }
+            else if (!IsQuestionValid(questionEntity))
+            {
+                return new QuestionOperationResult
+                {
+                    ErrorCode = "InvalidQuestion",
+                    ErrorMessage = "Question is invalid",
                     Success = false
                 };
             }
@@ -214,6 +225,23 @@ namespace com.awawawiwa.Services
 
             var questionOutputDtos = questionEntities.Select(QuestionMapper.ToDTO).ToList();
             return questionOutputDtos;
+        }
+
+        /// <summary>
+        /// Check if question is valid
+        /// </summary>
+        /// <param name="questionEntity"></param>
+        /// <returns></returns>
+        private static bool IsQuestionValid(QuestionEntity questionEntity)
+        {
+            if (string.IsNullOrWhiteSpace(questionEntity.Question) ||
+                string.IsNullOrWhiteSpace(questionEntity.Answer) ||
+                string.IsNullOrWhiteSpace(questionEntity.Category) ||
+                !QuestionCategory.IsValid(questionEntity.Category))
+            {
+                return false;
+            }
+            return true;
         }
     }
 }

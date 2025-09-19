@@ -43,41 +43,15 @@ namespace com.awawawiwa.Services
         /// <param name="userInput"></param>
         public async Task<UserOperationResult> CreateUserAsync(CreateUserInputDTO userInput)
         {
-            //Check if user exists
-            if (await UsernameExists(userInput.Username))
+            var validationResult = await IsUserInputValid(userInput);
+
+            if(!validationResult.Success)
             {
-                return new UserOperationResult
-                {
-                    ErrorCode = "UsernameTaken",
-                    ErrorMessage = "Username already exists",
-                    Success = false
-                };
-            }
-            //Check if email exists
-            if (await EmailExists(userInput.Email))
-            {
-                return new UserOperationResult
-                {
-                    ErrorCode = "EmailTaken",
-                    ErrorMessage = "Email already in use",
-                    Success = false
-                };
-            }
-            if (!IsValidEmail(userInput.Email))
-            {
-                return new UserOperationResult
-                {
-                    ErrorCode = "InvalidEmail",
-                    ErrorMessage = "Email is not valid",
-                    Success = false
-                };
+                return validationResult;
             }
 
             await SaveUser(userInput);
-            return new UserOperationResult
-            {
-                Success = true
-            };
+            return validationResult;
         }
 
         /// <summary>
@@ -311,6 +285,47 @@ namespace com.awawawiwa.Services
         private static bool IsValidEmail(string email)
         {
             return Regex.IsMatch(email, EMAIL_REGEX);
+        }
+
+        private async Task<UserOperationResult> IsUserInputValid(CreateUserInputDTO userInput)
+        {
+            //Check if user exists
+            if (await UsernameExists(userInput.Username))
+            {
+                return new UserOperationResult
+                {
+                    ErrorCode = "UsernameTaken",
+                    ErrorMessage = "Username already exists",
+                    Success = false
+                };
+            }
+            //Check if email exists
+            if (await EmailExists(userInput.Email))
+            {
+                return new UserOperationResult
+                {
+                    ErrorCode = "EmailTaken",
+                    ErrorMessage = "Email already in use",
+                    Success = false
+                };
+            }
+            if (!IsValidEmail(userInput.Email))
+            {
+                return new UserOperationResult
+                {
+                    ErrorCode = "InvalidEmail",
+                    ErrorMessage = "Email is not valid",
+                    Success = false
+                };
+            }
+
+            else
+            {
+                return new UserOperationResult
+                {
+                    Success = true
+                };
+            }
         }
     }
 }

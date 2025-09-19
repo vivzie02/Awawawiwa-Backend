@@ -57,7 +57,7 @@ namespace IO.Swagger.Controllers
 
             if (!result.Success)
             {
-                return Conflict(new { message = result.ErrorMessage });
+                return Conflict(result);
             }
 
             return Ok();
