@@ -109,10 +109,16 @@ namespace IO.Swagger
 
             var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection");
 
+            //services.AddDbContext<UserContext>(options =>
+            //    options.UseNpgsql(connectionString));
+            //services.AddDbContext<QuestionContext>(options =>
+            //    options.UseNpgsql(connectionString));
+
+            //InMemory DB for testing
             services.AddDbContext<UserContext>(options =>
-                options.UseNpgsql(connectionString));
+                options.UseInMemoryDatabase(databaseName: "aw_db"));
             services.AddDbContext<QuestionContext>(options =>
-                options.UseNpgsql(connectionString));
+                options.UseInMemoryDatabase(databaseName: "aw_db"));
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IJwtService, JwtService>();
@@ -151,11 +157,11 @@ namespace IO.Swagger
             //TODO: Use Https Redirection
             // app.UseHttpsRedirection();
 
-            using (var scope = app.ApplicationServices.CreateScope())
-            {
-                scope.ServiceProvider.GetRequiredService<UserContext>().Database.Migrate();
-                scope.ServiceProvider.GetRequiredService<QuestionContext>().Database.Migrate();
-            }
+            //using (var scope = app.ApplicationServices.CreateScope())
+            //{
+            //    scope.ServiceProvider.GetRequiredService<UserContext>().Database.Migrate();
+            //    scope.ServiceProvider.GetRequiredService<QuestionContext>().Database.Migrate();
+            //}
 
             app.UseEndpoints(endpoints =>
             {

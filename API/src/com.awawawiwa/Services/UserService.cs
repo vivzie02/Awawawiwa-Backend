@@ -289,6 +289,18 @@ namespace com.awawawiwa.Services
 
         private async Task<UserOperationResult> IsUserInputValid(CreateUserInputDTO userInput)
         {
+            if(string.IsNullOrEmpty(userInput.Username) ||
+               string.IsNullOrEmpty(userInput.Password) ||
+               string.IsNullOrEmpty(userInput.Email))
+            {
+                return new UserOperationResult
+                {
+                    ErrorCode = "MissingFields",
+                    ErrorMessage = "Username, Password and Email are required",
+                    Success = false
+                };
+            }
+
             //Check if user exists
             if (await UsernameExists(userInput.Username))
             {
@@ -318,7 +330,6 @@ namespace com.awawawiwa.Services
                     Success = false
                 };
             }
-
             else
             {
                 return new UserOperationResult

@@ -2,6 +2,7 @@
 using com.awawawiwa.Data.Context;
 using com.awawawiwa.Data.Entities;
 using com.awawawiwa.DTOs;
+using com.awawawiwa.Extensions;
 using com.awawawiwa.Mappers;
 using com.awawawiwa.Models;
 using Microsoft.EntityFrameworkCore;
@@ -36,6 +37,16 @@ namespace com.awawawiwa.Services
         /// <returns></returns>
         public async Task<QuestionOperationResult> CreateQuestionAsync(QuestionInputDTO questionInputDTO, string userId)
         {
+            if (!questionInputDTO.IsValid())
+            {
+                return new QuestionOperationResult
+                {
+                    ErrorCode = "InvalidQuestion",
+                    ErrorMessage = "Question is invalid",
+                    Success = false
+                };
+            }
+
             var questionEntity = QuestionMapper.ToEntity(questionInputDTO);
 
             // store logged in user as author
@@ -48,15 +59,6 @@ namespace com.awawawiwa.Services
                 {
                     ErrorCode = "QuestionExists",
                     ErrorMessage = "Question already exists",
-                    Success = false
-                };
-            }
-            else if (!IsQuestionValid(questionEntity))
-            {
-                return new QuestionOperationResult
-                {
-                    ErrorCode = "InvalidQuestion",
-                    ErrorMessage = "Question is invalid",
                     Success = false
                 };
             }
@@ -174,6 +176,16 @@ namespace com.awawawiwa.Services
         /// <returns></returns>
         public async Task<QuestionOperationResult> UpdateQuestionAsync(Guid questionId, string loggedInUser, QuestionInputDTO questionInputDTO)
         {
+            if (!questionInputDTO.IsValid())
+            {
+                return new QuestionOperationResult
+                {
+                    ErrorCode = "InvalidQuestion",
+                    ErrorMessage = "Question is invalid",
+                    Success = false
+                };
+            }
+
             var question = await _context.Questions.FindAsync(questionId);
 
             if (question == null)
@@ -225,23 +237,6 @@ namespace com.awawawiwa.Services
 
             var questionOutputDtos = questionEntities.Select(QuestionMapper.ToDTO).ToList();
             return questionOutputDtos;
-        }
-
-        /// <summary>
-        /// Check if question is valid
-        /// </summary>
-        /// <param name="questionEntity"></param>
-        /// <returns></returns>
-        private static bool IsQuestionValid(QuestionEntity questionEntity)
-        {
-            if (string.IsNullOrWhiteSpace(questionEntity.Question) ||
-                string.IsNullOrWhiteSpace(questionEntity.Answer) ||
-                string.IsNullOrWhiteSpace(questionEntity.Category) ||
-                !QuestionCategory.IsValid(questionEntity.Category))
-            {
-                return false;
-            }
-            return true;
         }
     }
 }

@@ -89,7 +89,7 @@ namespace IO.Swagger.Controllers
         }
 
         /// <summary>
-        /// Get Question by id
+        /// Delete Question by id
         /// </summary>
         /// <param name="questionId"></param>
         /// <response code="200">A question</response>

@@ -150,7 +150,7 @@ namespace IO.Swagger.Controllers
         }
 
         /// <summary>
-        /// Logout user
+        /// Check if user is logged in
         /// </summary>
         /// <response code="201">Successfully deleted user</response>
         /// <response code="500">Internal Server Error</response>
