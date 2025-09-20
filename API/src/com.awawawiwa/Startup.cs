@@ -114,11 +114,11 @@ namespace IO.Swagger
             //services.AddDbContext<QuestionContext>(options =>
             //    options.UseNpgsql(connectionString));
 
-            //InMemory DB for testing
+            //InMemory Database for testing
             services.AddDbContext<UserContext>(options =>
-                options.UseInMemoryDatabase(databaseName: "aw_db"));
+                options.UseInMemoryDatabase("UserList"));
             services.AddDbContext<QuestionContext>(options =>
-                options.UseInMemoryDatabase(databaseName: "aw_db"));
+                options.UseInMemoryDatabase("QuestionList"));
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IJwtService, JwtService>();

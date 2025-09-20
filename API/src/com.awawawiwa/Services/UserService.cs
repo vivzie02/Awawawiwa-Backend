@@ -142,6 +142,16 @@ namespace com.awawawiwa.Services
             var userEntity = await _context.Users
                 .FirstOrDefaultAsync(u => u.UserId == userId);
 
+            if (userEntity is null)
+            {
+                return new UserDataOutputDTO
+                {
+                    Id = Guid.Empty,
+                    Username = null,
+                    Email = null
+                };
+            }
+
             var userDataOutputDTO = new UserDataOutputDTO
             {
                 Id = userEntity.UserId,
