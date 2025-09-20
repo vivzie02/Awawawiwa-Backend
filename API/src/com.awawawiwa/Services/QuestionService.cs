@@ -1,5 +1,8 @@
-﻿using com.awawawiwa.Data.Context;
+﻿using com.awawawiwa.Constants;
+using com.awawawiwa.Data.Context;
+using com.awawawiwa.Data.Entities;
 using com.awawawiwa.DTOs;
+using com.awawawiwa.Extensions;
 using com.awawawiwa.Mappers;
 using com.awawawiwa.Models;
 using Microsoft.EntityFrameworkCore;
@@ -34,6 +37,16 @@ namespace com.awawawiwa.Services
         /// <returns></returns>
         public async Task<QuestionOperationResult> CreateQuestionAsync(QuestionInputDTO questionInputDTO, string userId)
         {
+            if (!questionInputDTO.IsValid())
+            {
+                return new QuestionOperationResult
+                {
+                    ErrorCode = "InvalidQuestion",
+                    ErrorMessage = "Question is invalid",
+                    Success = false
+                };
+            }
+
             var questionEntity = QuestionMapper.ToEntity(questionInputDTO);
 
             // store logged in user as author
@@ -163,6 +176,16 @@ namespace com.awawawiwa.Services
         /// <returns></returns>
         public async Task<QuestionOperationResult> UpdateQuestionAsync(Guid questionId, string loggedInUser, QuestionInputDTO questionInputDTO)
         {
+            if (!questionInputDTO.IsValid())
+            {
+                return new QuestionOperationResult
+                {
+                    ErrorCode = "InvalidQuestion",
+                    ErrorMessage = "Question is invalid",
+                    Success = false
+                };
+            }
+
             var question = await _context.Questions.FindAsync(questionId);
 
             if (question == null)
