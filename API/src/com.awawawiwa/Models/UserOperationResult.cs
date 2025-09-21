@@ -1,4 +1,6 @@
-﻿namespace com.awawawiwa.Models
+﻿using com.awawawiwa.DTOs;
+
+namespace com.awawawiwa.Models
 {
     /// <summary>
     /// UserOperationResult
@@ -17,5 +19,10 @@
         /// ErrorMessage
         /// </summary>
         public string ErrorMessage { get; set; }
+
+        /// <summary>
+        /// UserData
+        /// </summary>
+        public UserDataOutputDTO UserData { get; set; }
     }
 }

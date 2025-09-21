@@ -43,41 +43,15 @@ namespace com.awawawiwa.Services
         /// <param name="userInput"></param>
         public async Task<UserOperationResult> CreateUserAsync(CreateUserInputDTO userInput)
         {
-            //Check if user exists
-            if (await UsernameExists(userInput.Username))
+            var validationResult = await IsUserInputValid(userInput);
+
+            if(!validationResult.Success)
             {
-                return new UserOperationResult
-                {
-                    ErrorCode = "UsernameTaken",
-                    ErrorMessage = "Username already exists",
-                    Success = false
-                };
-            }
-            //Check if email exists
-            if (await EmailExists(userInput.Email))
-            {
-                return new UserOperationResult
-                {
-                    ErrorCode = "EmailTaken",
-                    ErrorMessage = "Email already in use",
-                    Success = false
-                };
-            }
-            if (!IsValidEmail(userInput.Email))
-            {
-                return new UserOperationResult
-                {
-                    ErrorCode = "InvalidEmail",
-                    ErrorMessage = "Email is not valid",
-                    Success = false
-                };
+                return validationResult;
             }
 
             await SaveUser(userInput);
-            return new UserOperationResult
-            {
-                Success = true
-            };
+            return validationResult;
         }
 
         /// <summary>
@@ -168,6 +142,16 @@ namespace com.awawawiwa.Services
             var userEntity = await _context.Users
                 .FirstOrDefaultAsync(u => u.UserId == userId);
 
+            if (userEntity is null)
+            {
+                return new UserDataOutputDTO
+                {
+                    Id = Guid.Empty,
+                    Username = null,
+                    Email = null
+                };
+            }
+
             var userDataOutputDTO = new UserDataOutputDTO
             {
                 Id = userEntity.UserId,
@@ -199,6 +183,12 @@ namespace com.awawawiwa.Services
             };
         }
 
+        /// <summary>
+        /// UploadProfilePictureAsync
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="profilePicture"></param>
+        /// <returns></returns>
         public async Task<UserOperationResult> UploadProfilePictureAsync(Guid userId, IFormFile profilePicture)
         {
             var user = await _context.Users.FindAsync(userId);
@@ -238,9 +228,19 @@ namespace com.awawawiwa.Services
             }
 
             var uploadDir = Path.Combine("wwwroot", "uploads", "profilePictures");
-            Directory.CreateDirectory(uploadDir); // Will only create if not exists
+            Directory.CreateDirectory(uploadDir);
 
             var path = Path.Combine("wwwroot/uploads/profilePictures", fileName);
+
+            //remove old picture
+            if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
+            {
+                var oldPath = Path.Combine("wwwroot", user.ProfilePictureUrl.TrimStart('/'));
+                if (File.Exists(oldPath))
+                {
+                    File.Delete(oldPath);
+                }
+            }
 
             using (var stream = new FileStream(path, FileMode.Create))
             {
@@ -248,11 +248,16 @@ namespace com.awawawiwa.Services
             }
 
             // Save file path or URL to database for the user
-            await SaveProfilePictureUrlAsync(userId, $"/uploads/profilePictures/{fileName}");
+            var fileUrl = $"/uploads/profilePictures/{fileName}";
+            await SaveProfilePictureUrlAsync(userId, fileUrl);
 
             return new UserOperationResult
             {
-                Success = true
+                Success = true,
+                UserData = new UserDataOutputDTO
+                {
+                    ProfilePicture = fileUrl
+                }
             };
         }
 
@@ -290,6 +295,58 @@ namespace com.awawawiwa.Services
         private static bool IsValidEmail(string email)
         {
             return Regex.IsMatch(email, EMAIL_REGEX);
+        }
+
+        private async Task<UserOperationResult> IsUserInputValid(CreateUserInputDTO userInput)
+        {
+            if(string.IsNullOrEmpty(userInput.Username) ||
+               string.IsNullOrEmpty(userInput.Password) ||
+               string.IsNullOrEmpty(userInput.Email))
+            {
+                return new UserOperationResult
+                {
+                    ErrorCode = "MissingFields",
+                    ErrorMessage = "Username, Password and Email are required",
+                    Success = false
+                };
+            }
+
+            //Check if user exists
+            if (await UsernameExists(userInput.Username))
+            {
+                return new UserOperationResult
+                {
+                    ErrorCode = "UsernameTaken",
+                    ErrorMessage = "Username already exists",
+                    Success = false
+                };
+            }
+            //Check if email exists
+            if (await EmailExists(userInput.Email))
+            {
+                return new UserOperationResult
+                {
+                    ErrorCode = "EmailTaken",
+                    ErrorMessage = "Email already in use",
+                    Success = false
+                };
+            }
+            if (!IsValidEmail(userInput.Email))
+            {
+                return new UserOperationResult
+                {
+                    ErrorCode = "InvalidEmail",
+                    ErrorMessage = "Email is not valid",
+                    Success = false
+                };
+            }
+            else
+            {
+                return new UserOperationResult
+                {
+                    Success = true
+                };
+            }
         }
     }
 }

@@ -18,8 +18,7 @@ namespace com.awawawiwa.Mappers
         /// <returns></returns>
         public static QuestionEntity ToEntity(QuestionInputDTO questionInputDTO)
         {
-
-            var category = QuestionCategory.IsValid(questionInputDTO.Category) ? questionInputDTO.Category : throw new ArgumentException("Invalid category");
+            var category = QuestionCategory.IsValid(questionInputDTO.Category) ? questionInputDTO.Category : null;
 
             return new QuestionEntity
             {
