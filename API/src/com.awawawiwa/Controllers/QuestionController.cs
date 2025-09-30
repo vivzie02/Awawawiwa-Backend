@@ -53,12 +53,12 @@ namespace IO.Swagger.Controllers
         [SwaggerOperation("CreateQuestion")]
         public virtual async Task<IActionResult> CreateQuestionAsync([FromBody] QuestionInputDTO questionInputDTO)
         {
-            _logger.LogInformation(">>> Call CreateQuestion - Payload: {payload}", JsonConvert.SerializeObject(questionInputDTO));
+            _logger.LogInformation(">>> Call CreateQuestion");
 
             var userId = User.FindFirst("userId")?.Value;
             var result = await _questionService.CreateQuestionAsync(questionInputDTO, userId);
 
-            _logger.LogInformation("<<< Call CreateQuestion - Result: {result}", JsonConvert.SerializeObject(result));
+            _logger.LogInformation("<<< Call CreateQuestion - Finished");
 
             if (!result.Success)
             {
@@ -83,11 +83,11 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(403, description: "Not logged in")]
         public virtual async Task<IActionResult> GetQuestionByIdAsync(Guid questionId)
         {
-            _logger.LogInformation(">>> Call GetQuestionById with Id {id}", questionId);
+            _logger.LogInformation(">>> Call GetQuestionById with Id");
 
             var question = await _questionService.GetQuestionByIdAsync(questionId);
 
-            _logger.LogInformation("<<< Call GetQuestionById - Result: {result}", JsonConvert.SerializeObject(question));
+            _logger.LogInformation("<<< Call GetQuestionById - Finished");
 
             if (question == null)
             {
@@ -112,13 +112,13 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(403, description: "Not logged in")]
         public virtual async Task<IActionResult> DeleteQuestionByIdAsync(Guid questionId)
         {
-            _logger.LogInformation(">>> Call DeleteQuestionById with Id: {id}", questionId);
+            _logger.LogInformation(">>> Call DeleteQuestionById");
 
             var loggedInUser = User.FindFirst("userId")?.Value;
 
             var result = await _questionService.DeleteQuestionByIdAsync(questionId, loggedInUser);
 
-            _logger.LogInformation("<<< Call DeleteQuestionById - Result: {result}", JsonConvert.SerializeObject(result));
+            _logger.LogInformation("<<< Call DeleteQuestionById - Finished");
 
             if (!result.Success)
             {
@@ -151,7 +151,7 @@ namespace IO.Swagger.Controllers
 
             var question = await _questionService.GetRandomQuestionAsync();
 
-            _logger.LogInformation("<<< Call GetRandomQuestion - Result: {result}", JsonConvert.SerializeObject(question));
+            _logger.LogInformation("<<< Call GetRandomQuestion - Finished");
 
             if (question == null)
             {
@@ -174,11 +174,11 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 200, description: "Get random question from category")]
         public virtual async Task<IActionResult> GetRandomQuestionByCategoryAsync([FromRoute][Required] string category)
         {
-            _logger.LogInformation(">>> Call GetRandomQuestionByCategory with Category: {category}", category);
+            _logger.LogInformation(">>> Call GetRandomQuestionByCategory");
 
             var question = await _questionService.GetRandomQuestionByCategoryAsync(category);
 
-            _logger.LogInformation("<<< Call GetRandomQuestionByCategory - Result: {result}", JsonConvert.SerializeObject(question));
+            _logger.LogInformation("<<< Call GetRandomQuestionByCategory - Finished");
 
             if (question == null)
             {
@@ -202,7 +202,7 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 200, description: "Update Question")]
         public virtual async Task<IActionResult> UpdateQuestion([FromRoute][Required] Guid questionId, [FromBody] QuestionInputDTO questionInputDTO)
         {
-            _logger.LogInformation(">>> Call UpdateQuestion for question {question} with input: {input}", questionId, JsonConvert.SerializeObject(questionInputDTO));
+            _logger.LogInformation(">>> Call UpdateQuestion");
 
             var loggedInUser = User.FindFirst("userId")?.Value;
 
@@ -243,7 +243,7 @@ namespace IO.Swagger.Controllers
 
             var questionOutputDTOs = await _questionService.GetQuestionsByUserIdAsync(Guid.Parse(loggedInUser));
 
-            _logger.LogInformation("<<< Call GetQuestionsByUserId - Result: {result}", JsonConvert.SerializeObject(questionOutputDTOs));
+            _logger.LogInformation("<<< Call GetQuestionsByUserId - Finished");
 
             return Ok(questionOutputDTOs);
         }

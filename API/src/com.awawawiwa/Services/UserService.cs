@@ -50,7 +50,7 @@ namespace com.awawawiwa.Services
 
             if(!validationResult.Success)
             {
-                _logger.LogWarning("User creation failed: {ErrorCode} - {ErrorMessage}", validationResult.ErrorCode, validationResult.ErrorMessage);
+                _logger.LogWarning("User creation failed");
                 return validationResult;
             }
 
@@ -69,7 +69,7 @@ namespace com.awawawiwa.Services
 
             if (user == null)
             {
-                _logger.LogWarning("User deletion failed: User with ID {UserId} not found", userId);
+                _logger.LogWarning("User deletion failed: User not found");
 
                 return new UserOperationResult
                 {
@@ -100,13 +100,13 @@ namespace com.awawawiwa.Services
 
             if (userEntity == null)
             {
-                _logger.LogInformation("Login failed: User with username {Username} not found", userInputDTO.Username);
+                _logger.LogInformation("Login failed: User not found");
                 return null;
             }
 
             if (!PasswordHasherService.VerifyPassword(userInputDTO.Password, userEntity.Salt, userEntity.Password))
             {
-                _logger.LogInformation("Login failed: Incorrect password for username {Username}", userInputDTO.Username);
+                _logger.LogInformation("Login failed: Incorrect password");
                 return null;
             }
 
@@ -152,7 +152,7 @@ namespace com.awawawiwa.Services
 
             if (userEntity is null)
             {
-                _logger.LogInformation("GetUserDataAsync: User with ID {UserId} not found", userId);
+                _logger.LogInformation("GetUserDataAsync: User with not found");
 
                 return new UserDataOutputDTO
                 {
@@ -186,7 +186,7 @@ namespace com.awawawiwa.Services
 
             if (user == null)
             {
-                _logger.LogWarning("UploadProfilePictureAsync failed: User with ID {UserId} not found", userId);
+                _logger.LogWarning("UploadProfilePictureAsync failed: User not found");
 
                 return new UserOperationResult
                 {
@@ -198,7 +198,7 @@ namespace com.awawawiwa.Services
 
             if (profilePicture == null || profilePicture.Length == 0)
             {
-                _logger.LogWarning("UploadProfilePictureAsync failed: No profile picture provided for user ID {UserId}", userId);
+                _logger.LogWarning("UploadProfilePictureAsync failed: No profile picture provided");
 
                 return new UserOperationResult
                 {
@@ -214,7 +214,7 @@ namespace com.awawawiwa.Services
             var allowedTypes = new[] { ".jpg", ".jpeg", ".png", ".gif" };
             if (!allowedTypes.Contains(extension))
             {
-                _logger.LogWarning("UploadProfilePictureAsync failed: Invalid file type {FileType} for user ID {UserId}", extension, userId);
+                _logger.LogWarning("UploadProfilePictureAsync failed: Invalid file type for");
 
                 return new UserOperationResult
                 {
@@ -232,7 +232,7 @@ namespace com.awawawiwa.Services
             //remove old picture
             if (!string.IsNullOrEmpty(user.ProfilePictureUrl))
             {
-                _logger.LogInformation("Removing old profile picture for user ID {UserId}", userId);
+                _logger.LogInformation("Removing old profile picture");
 
                 var oldPath = Path.Combine("wwwroot", user.ProfilePictureUrl.TrimStart('/'));
                 if (File.Exists(oldPath))
@@ -262,7 +262,7 @@ namespace com.awawawiwa.Services
 
         private async Task SaveProfilePictureUrlAsync(Guid userId, string filePath)
         {
-            _logger.LogInformation("Saving profile picture URL for user ID {UserId}", userId);
+            _logger.LogInformation("Saving profile picture URL");
 
             var user = await _context.Users.FindAsync(userId);
 
@@ -272,7 +272,7 @@ namespace com.awawawiwa.Services
 
         private async Task SaveUser(CreateUserInputDTO userInput)
         {
-            _logger.LogInformation("Saving new user {Username} to database", userInput.Username);
+            _logger.LogInformation("Saving new user to database");
 
             var userEntity = UserMapper.ToEntity(userInput);
             userEntity.UserId = Guid.NewGuid(); // Generate a new GUID for the user ID
@@ -302,6 +302,8 @@ namespace com.awawawiwa.Services
                string.IsNullOrEmpty(userInput.Password) ||
                string.IsNullOrEmpty(userInput.Email))
             {
+                _logger.LogWarning("User input validation failed: Missing required fields");
+
                 return new UserOperationResult
                 {
                     ErrorCode = "MissingFields",
@@ -313,6 +315,8 @@ namespace com.awawawiwa.Services
             //Check if user exists
             if (await UsernameExists(userInput.Username))
             {
+                _logger.LogWarning("User input validation failed: Username already exists");
+
                 return new UserOperationResult
                 {
                     ErrorCode = "UsernameTaken",
@@ -323,6 +327,8 @@ namespace com.awawawiwa.Services
             //Check if email exists
             if (await EmailExists(userInput.Email))
             {
+                _logger.LogWarning("User input validation failed: Email already in use");
+
                 return new UserOperationResult
                 {
                     ErrorCode = "EmailTaken",
@@ -332,6 +338,8 @@ namespace com.awawawiwa.Services
             }
             if (!IsValidEmail(userInput.Email))
             {
+                _logger.LogWarning("User input validation failed: Invalid email format");
+
                 return new UserOperationResult
                 {
                     ErrorCode = "InvalidEmail",

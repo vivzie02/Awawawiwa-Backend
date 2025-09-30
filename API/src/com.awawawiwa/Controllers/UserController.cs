@@ -57,11 +57,11 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(401, "Invalid username or password")]
         public virtual async Task<IActionResult> LoginUserAsync([FromBody] LoginUserInputDTO userInputDTO)
         {
-            _logger.LogInformation(">>> Call LoginUser for user {username}", userInputDTO.Username);
+            _logger.LogInformation(">>> Call LoginUser");
 
             var loginUserOutputDTO = await _userService.LoginUserAsync(userInputDTO);
 
-            _logger.LogInformation("<<< LoginUser completed for user {username}", userInputDTO.Username);
+            _logger.LogInformation("<<< LoginUser completed");
 
             if (string.IsNullOrEmpty(loginUserOutputDTO?.Token))
             {
@@ -86,11 +86,11 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 409, description: "Db Conflict")]
         public virtual async Task<IActionResult> CreateUserAsync([FromBody] CreateUserInputDTO body)
         {
-            _logger.LogInformation(">>> Call CreateUser for user {username}", body.Username);
+            _logger.LogInformation(">>> Call CreateUser");
 
             var result = await _userService.CreateUserAsync(body);
 
-            _logger.LogInformation("<<< CreateUser completed for user {username}", body.Username);
+            _logger.LogInformation("<<< CreateUser completed");
 
             if (!result.Success)
             {
@@ -117,7 +117,7 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 404, description: "User not found")]
         public virtual async Task<IActionResult> DeleteUserAsync(Guid userId)
         {
-            _logger.LogInformation(">>> Call DeleteUser for user {userId}", userId);
+            _logger.LogInformation(">>> Call DeleteUser");
 
             var loggedInUser = User.FindFirst("userId")?.Value;
 
@@ -130,7 +130,7 @@ namespace IO.Swagger.Controllers
 
             var result = await _userService.DeleteUserAsync(userId);
 
-            _logger.LogInformation("<<< DeleteUser completed for user {userId}", userId);
+            _logger.LogInformation("<<< DeleteUser completed");
 
             if (!result.Success)
             {
