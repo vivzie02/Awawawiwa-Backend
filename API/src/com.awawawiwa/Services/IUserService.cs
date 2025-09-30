@@ -40,13 +40,6 @@ namespace com.awawawiwa.Services
         void LogoutUser(string token);
 
         /// <summary>
-        /// logout user
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        UserLoggedInStatusOutputDTO IsUserLoggedIn(string token);
-
-        /// <summary>
         /// GetUserDataAsync
         /// </summary>
         /// <param name="token"></param>
