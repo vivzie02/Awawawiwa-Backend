@@ -1,4 +1,5 @@
-﻿using com.awawawiwa.Constants;
+﻿using Castle.Core.Logging;
+using com.awawawiwa.Constants;
 using com.awawawiwa.Data.Context;
 using com.awawawiwa.Data.Entities;
 using com.awawawiwa.DTOs;
@@ -6,6 +7,8 @@ using com.awawawiwa.Security;
 using com.awawawiwa.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -17,7 +20,7 @@ namespace com.awawawiwaTests.Services
         {
             jwtMock ??= new Mock<IJwtService>();
             revokedMock ??= new Mock<IRevokedTokensService>();
-            return new UserService(context, jwtMock.Object, revokedMock.Object);
+            return new UserService(context, jwtMock.Object, revokedMock.Object, NullLogger<UserService>.Instance);
         }
 
         [Theory]

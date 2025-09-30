@@ -11,9 +11,11 @@ using com.awawawiwa.DTOs;
 using com.awawawiwa.Services;
 using IO.Swagger.Attributes;
 using IO.Swagger.Security;
+using log4net.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.IO;
@@ -29,14 +31,17 @@ namespace IO.Swagger.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly ILogger<UserController> _logger;
 
         /// <summary>
         /// constructor
         /// </summary>
         /// <param name="userService"></param>
-        public UserController(IUserService userService)
+        /// <param name="logger"></param>
+        public UserController(IUserService userService, ILogger<UserController> logger)
         {
             _userService = userService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -52,7 +57,11 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(401, "Invalid username or password")]
         public virtual async Task<IActionResult> LoginUserAsync([FromBody] LoginUserInputDTO userInputDTO)
         {
+            _logger.LogInformation(">>> Call LoginUser for user {username}", userInputDTO.Username);
+
             var loginUserOutputDTO = await _userService.LoginUserAsync(userInputDTO);
+
+            _logger.LogInformation("<<< LoginUser completed for user {username}", userInputDTO.Username);
 
             if (string.IsNullOrEmpty(loginUserOutputDTO?.Token))
             {
@@ -77,7 +86,12 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 409, description: "Db Conflict")]
         public virtual async Task<IActionResult> CreateUserAsync([FromBody] CreateUserInputDTO body)
         {
+            _logger.LogInformation(">>> Call CreateUser for user {username}", body.Username);
+
             var result = await _userService.CreateUserAsync(body);
+
+            _logger.LogInformation("<<< CreateUser completed for user {username}", body.Username);
+
             if (!result.Success)
             {
                 return Conflict(new { message = result.ErrorMessage });
@@ -103,6 +117,8 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 404, description: "User not found")]
         public virtual async Task<IActionResult> DeleteUserAsync(Guid userId)
         {
+            _logger.LogInformation(">>> Call DeleteUser for user {userId}", userId);
+
             var loggedInUser = User.FindFirst("userId")?.Value;
 
             if (string.IsNullOrEmpty(loggedInUser) || loggedInUser != userId.ToString())
@@ -113,6 +129,9 @@ namespace IO.Swagger.Controllers
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
             var result = await _userService.DeleteUserAsync(userId);
+
+            _logger.LogInformation("<<< DeleteUser completed for user {userId}", userId);
+
             if (!result.Success)
             {
                 return NotFound(new { message = result.ErrorMessage });
@@ -138,7 +157,11 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 404, description: "User not found")]
         public virtual IActionResult LogoutUserAsync()
         {
+            _logger.LogInformation(">>> Call LogoutUser");
+
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+            _logger.LogInformation("<<< LogoutUser completed");
 
             if (string.IsNullOrEmpty(token))
             {
@@ -147,33 +170,6 @@ namespace IO.Swagger.Controllers
 
             _userService.LogoutUser(token);
             return Ok();
-        }
-
-        /// <summary>
-        /// Check if user is logged in
-        /// </summary>
-        /// <response code="201">Successfully deleted user</response>
-        /// <response code="500">Internal Server Error</response>
-        /// <response code="404">User not found</response>
-        [HttpPost("loginstatus")]
-        [ValidateModelState]
-        [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
-        [SwaggerOperation("LogoutUser")]
-        [SwaggerResponse(statusCode: 201, description: "Successfully got user status")]
-        [SwaggerResponse(statusCode: 403, description: "Forbidden - can't access other users' data")]
-        [SwaggerResponse(statusCode: 500, description: "Internal Server Error")]
-        [SwaggerResponse(statusCode: 404, description: "User not found")]
-        public virtual IActionResult IsUserLoggedIn()
-        {
-            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-
-            if (string.IsNullOrEmpty(token))
-            {
-                return BadRequest("No token found");
-            }
-
-            var loginStatus = _userService.IsUserLoggedIn(token);
-            return Ok(loginStatus);
         }
 
         /// <summary>
@@ -192,9 +188,13 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 404, description: "User not found")]
         public virtual async Task<IActionResult> GetUserDataAsync()
         {
+            _logger.LogInformation(">>> Call GetUserData");
+
             var userId = User.FindFirst("userId")?.Value;
 
             var userData = await _userService.GetUserDataAsync(Guid.Parse(userId));
+
+            _logger.LogInformation("<<< GetUserData completed");
             return Ok(userData);
         }
 
@@ -214,6 +214,8 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 404, description: "User not found")]
         public virtual async Task<IActionResult> UploadProfilePicture([FromForm] IFormFile profilePicture)
         {
+            _logger.LogInformation(">>> Call UploadProfilePicture");
+
             var userId = User.FindFirst("userId")?.Value;
 
             if (string.IsNullOrEmpty(userId))
@@ -222,6 +224,8 @@ namespace IO.Swagger.Controllers
             }
 
             var result = await _userService.UploadProfilePictureAsync(Guid.Parse(userId), profilePicture);
+
+            _logger.LogInformation("<<< UploadProfilePicture completed");
 
             if (!result.Success)
             {
