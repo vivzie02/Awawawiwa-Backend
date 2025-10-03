@@ -347,13 +347,22 @@ namespace com.awawawiwa.Services
                     Success = false
                 };
             }
-            else
+            if (userInput.Password.Length <= MIN_PASSWORD_LENGTH)
             {
+                _logger.LogWarning("User input validation failed: Password too short");
+
                 return new UserOperationResult
                 {
-                    Success = true
+                    ErrorCode = "PasswordTooShort",
+                    ErrorMessage = $"Password must be at least {MIN_PASSWORD_LENGTH} characters long",
+                    Success = false
                 };
             }
+
+            return new UserOperationResult
+            {
+                Success = true
+            };
         }
     }
 }
