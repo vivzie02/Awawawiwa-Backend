@@ -42,10 +42,16 @@ namespace com.awawawiwa.Services
         /// <summary>
         /// GetUserDataAsync
         /// </summary>
-        /// <param name="token"></param>
+        /// <param name="userId"></param>
         /// <returns></returns>
         Task<UserDataOutputDTO> GetUserDataAsync(Guid userId);
 
+        /// <summary>
+        /// UploadProfilePictureAsync
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="profilePicture"></param>
+        /// <returns></returns>
         Task<UserOperationResult> UploadProfilePictureAsync(Guid userId, IFormFile profilePicture);
     }
 }
