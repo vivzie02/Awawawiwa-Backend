@@ -2,6 +2,7 @@
 using com.awawawiwa.Data.Context;
 using com.awawawiwa.DTOs;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace com.awawawiwa.Services.Tests
@@ -26,7 +27,7 @@ namespace com.awawawiwa.Services.Tests
                 .Options;
 
             using var context = new QuestionContext(options);
-            var service = new QuestionService(context);
+            var service = new QuestionService(context, NullLogger<QuestionService>.Instance);
 
             var questionInput = new QuestionInputDTO
             {
@@ -56,7 +57,7 @@ namespace com.awawawiwa.Services.Tests
                 .Options;
 
             using var context = new QuestionContext(options);
-            var service = new QuestionService(context);
+            var service = new QuestionService(context, NullLogger<QuestionService>.Instance);
 
             var questionInput = new QuestionInputDTO
             {
@@ -94,7 +95,7 @@ namespace com.awawawiwa.Services.Tests
                 .Options;
 
             using var context = new QuestionContext(options);
-            var service = new QuestionService(context);
+            var service = new QuestionService(context, NullLogger<QuestionService>.Instance);
 
             var questionInput = new QuestionInputDTO
             {
@@ -130,7 +131,7 @@ namespace com.awawawiwa.Services.Tests
                 .Options;
 
             using var context = new QuestionContext(options);
-            var service = new QuestionService(context);
+            var service = new QuestionService(context, NullLogger<QuestionService>.Instance);
 
             var questionInput = new QuestionInputDTO
             {

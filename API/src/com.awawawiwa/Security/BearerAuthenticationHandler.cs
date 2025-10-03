@@ -22,10 +22,19 @@ namespace IO.Swagger.Security
         /// scheme name for authentication handler.
         /// </summary>
         public const string SchemeName = "Bearer";
-
+        /// <summary>
+        /// IRevokedTokensService
+        /// </summary>
         public readonly IRevokedTokensService _revokedTokensService;
 
-        public BearerAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IRevokedTokensService revokedTokensService) : base(options, logger, encoder, clock)
+        /// <summary>
+        /// Constructor for BearerAuthenticationHandler.
+        /// </summary>
+        /// <param name="options"></param>
+        /// <param name="logger"></param>
+        /// <param name="encoder"></param>
+        /// <param name="revokedTokensService"></param>
+        public BearerAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, IRevokedTokensService revokedTokensService) : base(options, logger, encoder)
         {
             _revokedTokensService = revokedTokensService;
         }

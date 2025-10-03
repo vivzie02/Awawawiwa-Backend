@@ -5,7 +5,10 @@ using com.awawawiwa.DTOs;
 using com.awawawiwa.Extensions;
 using com.awawawiwa.Mappers;
 using com.awawawiwa.Models;
+using log4net.Core;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,14 +22,16 @@ namespace com.awawawiwa.Services
     public class QuestionService : IQuestionService
     {
         private readonly QuestionContext _context;
+        private readonly ILogger<QuestionService> _logger;
 
         /// <summary>
         /// constructor
         /// </summary>
         /// <param name="questionContext"></param>
-        public QuestionService(QuestionContext questionContext)
+        public QuestionService(QuestionContext questionContext, ILogger<QuestionService> logger)
         {
             _context = questionContext;
+            _logger = logger;
         }
 
         /// <summary>
@@ -39,6 +44,8 @@ namespace com.awawawiwa.Services
         {
             if (!questionInputDTO.IsValid())
             {
+                _logger.LogInformation("Invalid question input DTO");
+
                 return new QuestionOperationResult
                 {
                     ErrorCode = "InvalidQuestion",
@@ -55,6 +62,8 @@ namespace com.awawawiwa.Services
             var questionExists = await _context.Questions.AnyAsync(question => question.Question == questionInputDTO.Question);
             if (questionExists)
             {
+                _logger.LogInformation("Question already exists");
+
                 return new QuestionOperationResult
                 {
                     ErrorCode = "QuestionExists",
@@ -83,6 +92,8 @@ namespace com.awawawiwa.Services
 
             if (question == null)
             {
+                _logger.LogInformation("No question found");
+
                 return null;
             }
 
@@ -101,6 +112,8 @@ namespace com.awawawiwa.Services
 
             if (question == null)
             {
+                _logger.LogInformation("Question was not found");
+
                 return new QuestionOperationResult
                 {
                     ErrorCode = "QuestionNotFound",
@@ -112,6 +125,8 @@ namespace com.awawawiwa.Services
             //only delete own questions 
             if (Guid.Parse(loggedInUser) != question.AuthorId)
             {
+                _logger.LogInformation("Wrong user trying to delete");
+
                 return new QuestionOperationResult
                 {
                     ErrorCode = "NotAuthorized",
@@ -141,6 +156,8 @@ namespace com.awawawiwa.Services
 
             if (randomQuestion == null)
             {
+                _logger.LogInformation("No Questions found");
+
                 return null;
             }
 
@@ -161,6 +178,8 @@ namespace com.awawawiwa.Services
 
             if (randomQuestion == null)
             {
+                _logger.LogInformation("No Questions found");
+
                 return null;
             }
 
