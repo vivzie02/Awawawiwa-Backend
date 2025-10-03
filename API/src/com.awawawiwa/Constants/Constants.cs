@@ -18,5 +18,10 @@
         /// MIN_PASSWORD_LENGTH
         /// </summary>
         public const int MIN_PASSWORD_LENGTH = 8;
+
+        /// <summary>
+        /// MAX_QUESTION_LENGTH
+        /// </summary>
+        public const int MAX_QUESTION_LENGTH = 500;
     }
 }
