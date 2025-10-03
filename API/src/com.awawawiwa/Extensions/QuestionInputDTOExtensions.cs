@@ -1,6 +1,6 @@
 ﻿using com.awawawiwa.Constants;
-using com.awawawiwa.Data.Entities;
 using com.awawawiwa.DTOs;
+using static com.awawawiwa.Constants.Constants;
 
 namespace com.awawawiwa.Extensions
 {
@@ -20,6 +20,8 @@ namespace com.awawawiwa.Extensions
             if (string.IsNullOrWhiteSpace(dto.Question) ||
                 string.IsNullOrWhiteSpace(dto.Answer) ||
                 string.IsNullOrWhiteSpace(dto.Category) ||
+                dto.Question.Length > MAX_QUESTION_LENGTH ||
+                dto.Answer.Length > MAX_QUESTION_LENGTH ||
                 !QuestionCategory.IsValid(dto.Category))
             {
                 return false;
