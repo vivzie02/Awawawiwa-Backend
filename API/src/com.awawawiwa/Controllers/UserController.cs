@@ -152,22 +152,13 @@ namespace IO.Swagger.Controllers
         [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
         [SwaggerOperation("LogoutUser")]
         [SwaggerResponse(statusCode: 201, description: "Successfully logged out user")]
-        [SwaggerResponse(statusCode: 403, description: "Forbidden - can't logout other users")]
         [SwaggerResponse(statusCode: 500, description: "Internal Server Error")]
         [SwaggerResponse(statusCode: 404, description: "User not found")]
         public virtual IActionResult LogoutUser()
         {
             _logger.LogInformation(">>> Call LogoutUser");
 
-            var userId = User.FindFirst("userId")?.Value;
-
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-
-            if (string.IsNullOrEmpty(token))
-            {
-                _logger.LogInformation("<<< LogoutUser completed");
-                return BadRequest("No token found");
-            }
 
             _userService.LogoutUser(token);
 
