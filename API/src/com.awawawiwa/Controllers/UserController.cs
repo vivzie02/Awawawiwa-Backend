@@ -55,7 +55,7 @@ namespace IO.Swagger.Controllers
         [SwaggerOperation("LoginUser")]
         [SwaggerResponse(200, "Login successful")]
         [SwaggerResponse(401, "Invalid username or password")]
-        public virtual async Task<IActionResult> LoginUserAsync([FromBody] LoginUserInputDTO userInputDTO)
+        public virtual async Task<IActionResult> LoginUser([FromBody] LoginUserInputDTO userInputDTO)
         {
             _logger.LogInformation(">>> Call LoginUser");
 
@@ -84,7 +84,7 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 201, description: "Successfully created new user")]
         [SwaggerResponse(statusCode: 500, description: "Internal Server Error")]
         [SwaggerResponse(statusCode: 409, description: "Db Conflict")]
-        public virtual async Task<IActionResult> CreateUserAsync([FromBody] CreateUserInputDTO body)
+        public virtual async Task<IActionResult> CreateUser([FromBody] CreateUserInputDTO body)
         {
             _logger.LogInformation(">>> Call CreateUser");
 
@@ -115,7 +115,7 @@ namespace IO.Swagger.Controllers
         [SwaggerResponse(statusCode: 403, description: "Forbidden - can't delete other users")]
         [SwaggerResponse(statusCode: 500, description: "Internal Server Error")]
         [SwaggerResponse(statusCode: 404, description: "User not found")]
-        public virtual async Task<IActionResult> DeleteUserAsync(Guid userId)
+        public virtual async Task<IActionResult> DeleteUser(Guid userId)
         {
             _logger.LogInformation(">>> Call DeleteUser");
 
@@ -152,23 +152,17 @@ namespace IO.Swagger.Controllers
         [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
         [SwaggerOperation("LogoutUser")]
         [SwaggerResponse(statusCode: 201, description: "Successfully logged out user")]
-        [SwaggerResponse(statusCode: 403, description: "Forbidden - can't logout other users")]
         [SwaggerResponse(statusCode: 500, description: "Internal Server Error")]
         [SwaggerResponse(statusCode: 404, description: "User not found")]
-        public virtual IActionResult LogoutUserAsync()
+        public virtual IActionResult LogoutUser()
         {
             _logger.LogInformation(">>> Call LogoutUser");
 
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
-            _logger.LogInformation("<<< LogoutUser completed");
-
-            if (string.IsNullOrEmpty(token))
-            {
-                return BadRequest("No token found");
-            }
-
             _userService.LogoutUser(token);
+
+            _logger.LogInformation("<<< LogoutUser completed");
             return Ok();
         }
 
@@ -181,12 +175,12 @@ namespace IO.Swagger.Controllers
         [HttpGet("me")]
         [ValidateModelState]
         [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
-        [SwaggerOperation("LogoutUser")]
+        [SwaggerOperation("GetUserData")]
         [SwaggerResponse(statusCode: 201, description: "Successfully got user data")]
         [SwaggerResponse(statusCode: 403, description: "Forbidden - can't access other users' data")]
         [SwaggerResponse(statusCode: 500, description: "Internal Server Error")]
         [SwaggerResponse(statusCode: 404, description: "User not found")]
-        public virtual async Task<IActionResult> GetUserDataAsync()
+        public virtual async Task<IActionResult> GetUserData()
         {
             _logger.LogInformation(">>> Call GetUserData");
 
@@ -195,6 +189,11 @@ namespace IO.Swagger.Controllers
             var userData = await _userService.GetUserDataAsync(Guid.Parse(userId));
 
             _logger.LogInformation("<<< GetUserData completed");
+
+            if(userData.Id == Guid.Empty)
+            {
+                return NotFound();
+            }
             return Ok(userData);
         }
 
@@ -204,7 +203,7 @@ namespace IO.Swagger.Controllers
         /// <response code="201">Successfully deleted user</response>
         /// <response code="500">Internal Server Error</response>
         /// <response code="404">User not found</response>
-        [HttpPost("me/profilePicture")]
+        [HttpPost("me/profile-picture")]
         [ValidateModelState]
         [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
         [SwaggerOperation("UploadProfilePicture")]

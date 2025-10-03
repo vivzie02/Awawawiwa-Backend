@@ -108,16 +108,16 @@ namespace IO.Swagger
 
             var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection");
 
-            //services.AddDbContext<UserContext>(options =>
-            //    options.UseNpgsql(connectionString));
-            //services.AddDbContext<QuestionContext>(options =>
-            //    options.UseNpgsql(connectionString));
+            services.AddDbContext<UserContext>(options =>
+                options.UseNpgsql(connectionString));
+            services.AddDbContext<QuestionContext>(options =>
+                options.UseNpgsql(connectionString));
 
             //InMemory Database for testing
-            services.AddDbContext<UserContext>(options =>
-                options.UseInMemoryDatabase("UserList"));
-            services.AddDbContext<QuestionContext>(options =>
-                options.UseInMemoryDatabase("QuestionList"));
+            //services.AddDbContext<UserContext>(options =>
+            //    options.UseInMemoryDatabase("UserList"));
+            //services.AddDbContext<QuestionContext>(options =>
+            //    options.UseInMemoryDatabase("QuestionList"));
 
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IJwtService, JwtService>();
