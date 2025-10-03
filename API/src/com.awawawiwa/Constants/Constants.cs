@@ -13,5 +13,10 @@
         /// EMAIL_REGEX
         /// </summary>
         public const string EMAIL_REGEX = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+
+        /// <summary>
+        /// MIN_PASSWORD_LENGTH
+        /// </summary>
+        public const int MIN_PASSWORD_LENGTH = 8;
     }
 }
