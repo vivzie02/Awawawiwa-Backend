@@ -1,4 +1,4 @@
-﻿namespace com.awawawiwa.Constants
+﻿namespace com.awawawiwa.Common.Constants
 {
     /// <summary>
     /// Constants

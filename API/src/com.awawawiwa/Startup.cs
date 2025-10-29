@@ -28,6 +28,7 @@ using Newtonsoft.Json.Serialization;
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text.Json;
 
 namespace IO.Swagger
 {
@@ -106,11 +107,21 @@ namespace IO.Swagger
                     c.OperationFilter<GeneratePathParamsValidationFilter>();
                 });
 
+            services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                });
+
             var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings_DefaultConnection");
+
+            services.AddHttpClient();
 
             services.AddDbContext<UserContext>(options =>
                 options.UseNpgsql(connectionString));
             services.AddDbContext<QuestionContext>(options =>
+                options.UseNpgsql(connectionString));
+            services.AddDbContext<ConfirmationTokenContext>(options =>
                 options.UseNpgsql(connectionString));
 
             //InMemory Database for testing
@@ -123,6 +134,8 @@ namespace IO.Swagger
             services.AddScoped<IJwtService, JwtService>();
             services.AddScoped<IRevokedTokensService, RevokedTokensService>();
             services.AddScoped<IQuestionService, QuestionService>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IConfirmationTokenService, ConfirmationTokenService>();
 
         }
 

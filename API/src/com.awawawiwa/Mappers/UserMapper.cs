@@ -1,7 +1,7 @@
 ﻿using com.awawawiwa.Data.Entities;
 using com.awawawiwa.DTOs;
 using com.awawawiwa.Security;
-using static com.awawawiwa.Constants.Constants;
+using static com.awawawiwa.Common.Constants.Constants;
 
 namespace com.awawawiwa.Mappers
 {
@@ -26,6 +26,7 @@ namespace com.awawawiwa.Mappers
                 Salt = salt,
                 Password = hashedPassword,
                 Email = userInputDTO.Email,
+                Confirmed = false
             };
         }
     }

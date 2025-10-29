@@ -233,5 +233,34 @@ namespace IO.Swagger.Controllers
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// ConfirmUserEmail
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        [HttpPost("auth/confirm")]
+        [ValidateModelState]
+        [Authorize(AuthenticationSchemes = BearerAuthenticationHandler.SchemeName)]
+        [SwaggerOperation("ConfirmUserEmail")]
+        [SwaggerResponse(statusCode: 201, description: "Successfully confirmed mail")]
+        [SwaggerResponse(statusCode: 500, description: "Internal Server Error")]
+        [SwaggerResponse(statusCode: 404, description: "token not found")]
+        public virtual async Task<IActionResult> ConfirmUserEmail([FromQuery] string token)
+        {
+            _logger.LogInformation(">>> Call ConfirmUserEmail");
+
+            var result = await _userService.ConfirmUserEmailAsync(token);
+
+            _logger.LogInformation("<<< ConfirmUserEmail completed");
+
+            if (!result.Success)
+            {
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
     }
 }

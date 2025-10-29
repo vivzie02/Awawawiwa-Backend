@@ -1,8 +1,8 @@
-﻿using com.awawawiwa.Constants;
+﻿using com.awawawiwa.Common.Constants;
 using com.awawawiwa.DTOs;
-using static com.awawawiwa.Constants.Constants;
+using static com.awawawiwa.Common.Constants.Constants;
 
-namespace com.awawawiwa.Extensions
+namespace com.awawawiwa.Common.Extensions
 {
     /// <summary>
     /// Extensions for the QuestionInputDTO

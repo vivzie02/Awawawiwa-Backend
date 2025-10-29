@@ -1,4 +1,4 @@
-﻿using com.awawawiwa.Constants;
+﻿using com.awawawiwa.Common.Constants;
 using com.awawawiwa.Data.Context;
 using com.awawawiwa.DTOs;
 using Microsoft.EntityFrameworkCore;
