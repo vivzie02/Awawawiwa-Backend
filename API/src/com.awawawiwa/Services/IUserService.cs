@@ -57,8 +57,8 @@ namespace com.awawawiwa.Services
         /// <summary>
         /// ConfirmUserEmailAsync
         /// </summary>
-        /// <param name="token"></param>
+        /// <param name="userId"></param>
         /// <returns></returns>
-        Task<UserOperationResult> ConfirmUserEmailAsync(string token);
+        Task<UserOperationResult> ConfirmUserEmailAsync(Guid userId);
     }
 }

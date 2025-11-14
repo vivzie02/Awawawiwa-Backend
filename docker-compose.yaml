@@ -31,8 +31,25 @@ services:
     networks:
       - quiz-network
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - quiz-network
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
 volumes:
   quiz_data:
+  pgadmin_data:
 
 networks:
   quiz-network:

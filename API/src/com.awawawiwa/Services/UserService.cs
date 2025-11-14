@@ -63,10 +63,8 @@ namespace com.awawawiwa.Services
             try
             {
                 _logger.LogInformation("Send confirmation email to new user");
-                //create user confirmation token
-                var confirmationToken = await _confirmationTokenService.GenerateTokenAsync(userId);
                 //send account confirmation email
-                await SendConfirmationMail(userInput, confirmationToken);
+                await _confirmationTokenService.SendConfirmationMail(userInput, userId);
             }catch(Exception ex)
             {
                 _logger.LogError($"Failed to send confirmation email: {ex.Message}");
@@ -286,18 +284,21 @@ namespace com.awawawiwa.Services
         }
 
         /// <summary>
-        /// ConfirmUserEmailAsync
+        /// sets the user email as confirmed for the given user id
         /// </summary>
-        /// <param name="token"></param>
+        /// <param name="userId"></param>
         /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public async Task<UserOperationResult> ConfirmUserEmailAsync(string token)
+        public async Task<UserOperationResult> ConfirmUserEmailAsync(Guid userId)
         {
+            var user = await _context.Users.FindAsync(userId);
+
+            user.Confirmed = true;
+
+            await _context.SaveChangesAsync();
+
             return new UserOperationResult
             {
-                Success = false,
-                ErrorCode = "NotImplemented",
-                ErrorMessage = "Email confirmation is not implemented yet"
+                Success = true
             };
         }
 
@@ -404,17 +405,6 @@ namespace com.awawawiwa.Services
             {
                 Success = true
             };
-        }
-
-        private async Task SendConfirmationMail(CreateUserInputDTO userInputDto, string confirmationToken)
-        {
-            var mailInputDto = new SendConfirmationEmailInputDto
-            {
-                Recipient = userInputDto.Email,
-                Token = confirmationToken,
-            };
-
-            await _emailService.SendConfirmationEmailAsync(mailInputDto);
         }
     }
 }
