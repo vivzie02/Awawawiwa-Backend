@@ -53,5 +53,12 @@ namespace com.awawawiwa.Services
         /// <param name="profilePicture"></param>
         /// <returns></returns>
         Task<UserOperationResult> UploadProfilePictureAsync(Guid userId, IFormFile profilePicture);
+
+        /// <summary>
+        /// ConfirmUserEmailAsync
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        Task<UserOperationResult> ConfirmUserEmailAsync(Guid userId);
     }
 }
