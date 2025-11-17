@@ -12,7 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using static com.awawawiwa.Constants.Constants;
+using static com.awawawiwa.Common.Constants.Constants;
 
 namespace com.awawawiwa.Services
 {
@@ -28,16 +28,20 @@ namespace com.awawawiwa.Services
         private readonly IJwtService _jwtService;
         private readonly IRevokedTokensService _revokedTokensService;
         private readonly ILogger<UserService> _logger;
+        private readonly IEmailService _emailService;
+        private readonly IConfirmationTokenService _confirmationTokenService;
 
         /// <summary>
         /// UserService
         /// </summary>
-        public UserService(UserContext userContext, IJwtService jwtService, IRevokedTokensService revokedTokensService, ILogger<UserService> logger)
+        public UserService(UserContext userContext, IJwtService jwtService, IRevokedTokensService revokedTokensService, ILogger<UserService> logger, IEmailService emailService, IConfirmationTokenService confirmationTokenService)
         {
             _context = userContext;
             _jwtService = jwtService;
             _revokedTokensService = revokedTokensService;
             _logger = logger;
+            _emailService = emailService;
+            _confirmationTokenService = confirmationTokenService;
         }
 
         /// <summary>
@@ -54,7 +58,26 @@ namespace com.awawawiwa.Services
                 return validationResult;
             }
 
-            await SaveUser(userInput);
+            var userId = Guid.NewGuid();
+
+            try
+            {
+                _logger.LogInformation("Send confirmation email to new user");
+                //send account confirmation email
+                await _confirmationTokenService.SendConfirmationMail(userInput, userId);
+            }catch(Exception ex)
+            {
+                _logger.LogError($"Failed to send confirmation email: {ex.Message}");
+                return new UserOperationResult
+                {
+                    ErrorCode = "EmailSendFailed",
+                    ErrorMessage = "Failed to send confirmation email",
+                    Success = false
+                };
+            }
+
+            await SaveUser(userInput, userId);
+
             return validationResult;
         }
 
@@ -260,6 +283,25 @@ namespace com.awawawiwa.Services
             };
         }
 
+        /// <summary>
+        /// sets the user email as confirmed for the given user id
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<UserOperationResult> ConfirmUserEmailAsync(Guid userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+
+            user.Confirmed = true;
+
+            await _context.SaveChangesAsync();
+
+            return new UserOperationResult
+            {
+                Success = true
+            };
+        }
+
         private async Task SaveProfilePictureUrlAsync(Guid userId, string filePath)
         {
             _logger.LogInformation("Saving profile picture URL");
@@ -270,12 +312,12 @@ namespace com.awawawiwa.Services
             await _context.SaveChangesAsync();
         }
 
-        private async Task SaveUser(CreateUserInputDTO userInput)
+        private async Task SaveUser(CreateUserInputDTO userInput, Guid userId)
         {
             _logger.LogInformation("Saving new user to database");
 
             var userEntity = UserMapper.ToEntity(userInput);
-            userEntity.UserId = Guid.NewGuid(); // Generate a new GUID for the user ID
+            userEntity.UserId = userId;
 
             _context.Add(userEntity);
             await _context.SaveChangesAsync();
@@ -347,13 +389,22 @@ namespace com.awawawiwa.Services
                     Success = false
                 };
             }
-            else
+            if (userInput.Password.Length < MIN_PASSWORD_LENGTH)
             {
+                _logger.LogWarning("User input validation failed: Password too short");
+
                 return new UserOperationResult
                 {
-                    Success = true
+                    ErrorCode = "PasswordTooShort",
+                    ErrorMessage = $"Password must be at least {MIN_PASSWORD_LENGTH} characters long",
+                    Success = false
                 };
             }
+
+            return new UserOperationResult
+            {
+                Success = true
+            };
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Text;
-using static com.awawawiwa.Constants.Constants;
+using static com.awawawiwa.Common.Constants.Constants;
 
 namespace com.awawawiwa.Security
 {

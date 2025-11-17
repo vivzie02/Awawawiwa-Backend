@@ -10,11 +10,13 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     env_file: ".env"
     ports:
-      - "8080:8080"
+      - "50352:50352"
     depends_on:
       - db
     networks:
       - quiz-network
+    volumes:
+      - ./uploads:/app/wwwroot/uploads
 
   db:
     image: postgres
@@ -27,13 +29,31 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - quiz_data:/var/lib/postgresql/data
+      - quiz_data:/var/lib/postgresql
     networks:
       - quiz-network
 
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - quiz-network
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
 volumes:
   quiz_data:
+  pgadmin_data:
+  uploads:
 
 networks:
   quiz-network:
-    driver: bridge
+    external: true

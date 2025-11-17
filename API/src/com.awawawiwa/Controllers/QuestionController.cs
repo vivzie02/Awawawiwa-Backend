@@ -26,7 +26,7 @@ namespace IO.Swagger.Controllers
     /// 
     /// </summary>
     [ApiController]
-    [Route("v1/questions")]
+    [Route("v1/api/[controller]")]
     public class QuestionController : ControllerBase
     {
         private readonly IQuestionService _questionService;

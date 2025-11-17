@@ -1,14 +1,10 @@
-﻿using com.awawawiwa.Constants;
+﻿using com.awawawiwa.Common.Extensions;
 using com.awawawiwa.Data.Context;
-using com.awawawiwa.Data.Entities;
 using com.awawawiwa.DTOs;
-using com.awawawiwa.Extensions;
 using com.awawawiwa.Mappers;
 using com.awawawiwa.Models;
-using log4net.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -249,7 +245,7 @@ namespace com.awawawiwa.Services
         {
             var questionEntities = await _context.Questions.Where(question => question.AuthorId == userId).ToListAsync();
 
-            if(questionEntities == null)
+            if (questionEntities == null)
             {
                 return null;
             }

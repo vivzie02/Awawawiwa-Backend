@@ -1,5 +1,5 @@
 ﻿using Castle.Core.Logging;
-using com.awawawiwa.Constants;
+using com.awawawiwa.Common.Constants;
 using com.awawawiwa.Data.Context;
 using com.awawawiwa.Data.Entities;
 using com.awawawiwa.DTOs;

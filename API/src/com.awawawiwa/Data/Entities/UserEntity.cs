@@ -49,5 +49,11 @@ namespace com.awawawiwa.Data.Entities
         /// </summary>
         [Column("profilePictureUrl")]
         public string ProfilePictureUrl { get; set; }
+
+        /// <summary>
+        /// Confirmed
+        /// </summary>
+        [Column("confirmed")]
+        public bool Confirmed { get; set; }
     }
 }
