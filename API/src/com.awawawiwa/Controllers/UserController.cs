@@ -27,7 +27,7 @@ namespace IO.Swagger.Controllers
     /// 
     /// </summary>
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("v1/api/[controller]")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;

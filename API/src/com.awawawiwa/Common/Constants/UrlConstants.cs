@@ -9,6 +9,6 @@
         /// <summary>
         /// EMAIL_SERVICE_API
         /// </summary>
-        public const string EMAIL_SERVICE_API = "http://localhost:8080";
+        public const string EMAIL_SERVICE_API = "http://documents-services:8080";
     }
 }

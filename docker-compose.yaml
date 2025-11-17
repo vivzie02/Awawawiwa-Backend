@@ -10,11 +10,13 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     env_file: ".env"
     ports:
-      - "8080:8080"
+      - "50352:50352"
     depends_on:
       - db
     networks:
       - quiz-network
+    volumes:
+      - ./uploads:/app/wwwroot/uploads
 
   db:
     image: postgres
@@ -27,7 +29,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - quiz_data:/var/lib/postgresql/data
+      - quiz_data:/var/lib/postgresql
     networks:
       - quiz-network
 
@@ -50,7 +52,8 @@ services:
 volumes:
   quiz_data:
   pgadmin_data:
+  uploads:
 
 networks:
   quiz-network:
-    driver: bridge
+    external: true
